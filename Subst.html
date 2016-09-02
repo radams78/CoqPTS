@@ -1,0 +1,309 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset="><link rel="stylesheet" href="style.css" type="text/css"><title>Subst</title>
+</head>
+
+<body>
+
+<h1>Library Subst</h1>
+
+<code>
+<code class="keyword">Require</code> <code class="keyword">Export</code> <a href="Subvar.html">Subvar</a>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="subst"></a>subst : forall m, term m -&gt; forall n, (fin m -&gt; term n) -&gt; term n.<br/>
+&nbsp;&nbsp;induction 1.<br/>
+&nbsp;&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (rho f).<br/>
+&nbsp;&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (srt s).<br/>
+&nbsp;&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (app (IHterm1 _ rho) (IHterm2 _ rho)).<br/>
+&nbsp;&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (pi (IHterm1 _ rho) (IHterm2 _ (liftsub rho))).<br/>
+&nbsp;&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (lda (IHterm1 _ rho) (IHterm2 _ (liftsub rho))).<br/>
+<code class="keyword">Defined</code>.<br/>
+<code class="keyword">Implicit</code> Arguments subst [m n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subst_ext"></a>subst_ext : forall m M n (rho sigma : fin m -&gt; term n),<br/>
+&nbsp;&nbsp;rho =f sigma -&gt; subst M rho = subst M sigma.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction M; simpl; auto.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;apply app_wd; auto.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;apply pi_wd; auto.<br/>
+&nbsp;&nbsp;&nbsp;apply IHM2. <br/>
+&nbsp;&nbsp;&nbsp;apply liftsub_ext.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;apply lda_wd; auto.<br/>
+&nbsp;&nbsp;&nbsp;apply IHM2.<br/>
+&nbsp;&nbsp;&nbsp;apply liftsub_ext.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="triv_subst"></a>triv_subst : forall n (M : term n), subst M (id _) = M.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction M; simpl; auto.<br/>
+apply app_wd; auto.<br/>
+apply pi_wd; auto.<br/>
+&nbsp;&nbsp;transitivity (subst M2 (id _)).<br/>
+&nbsp;&nbsp;apply subst_ext.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply liftsub_id.<br/>
+&nbsp;&nbsp;assumption.<br/>
+apply lda_wd; auto.<br/>
+&nbsp;&nbsp;transitivity (subst M2 (id _)).<br/>
+&nbsp;&nbsp;apply subst_ext.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply liftsub_id.<br/>
+&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="triv_subst'"></a>triv_subst' n (M : term n) : subst M (var (n:=n)) = M.<br/>
+intros.<br/>
+rewrite subst_ext with n M n (var (n:=n)) (fun x : fin n =&gt; var x).<br/>
+&nbsp;apply triv_subst.<br/>
+&nbsp;intro.<br/>
+&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subst_subvar"></a>subst_subvar : forall m M n p (rho : fin m -&gt; fin n) (sigma : fin n -&gt; term p),<br/>
+&nbsp;&nbsp;subst (subvar M rho) sigma = subst M (sigma (O) rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+induction M; simpl; try reflexivity.<br/>
+intros.<br/>
+&nbsp;&nbsp;apply app_wd; auto.<br/>
+intros.<br/>
+&nbsp;&nbsp;apply pi_wd; auto.<br/>
+&nbsp;&nbsp;rewrite IHM2.<br/>
+&nbsp;&nbsp;apply subst_ext.<br/>
+&nbsp;&nbsp;apply funceq_sym.<br/>
+&nbsp;&nbsp;apply liftsub_comp.<br/>
+intros.<br/>
+&nbsp;&nbsp;apply lda_wd; auto.<br/>
+&nbsp;&nbsp;rewrite IHM2.<br/>
+&nbsp;&nbsp;apply subst_ext.<br/>
+&nbsp;&nbsp;apply funceq_sym.<br/>
+&nbsp;&nbsp;apply liftsub_comp.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subvar_subst"></a>subvar_subst : forall m M n p (rho : fin m -&gt; term n) (sigma : fin n -&gt; fin p),<br/>
+&nbsp;&nbsp;subvar (subst M rho) sigma = (subst M (sigma (OO) rho)).<br/>
+<code class="keyword">Proof</code>.<br/>
+induction M; simpl; auto.<br/>
+intros.<br/>
+&nbsp;&nbsp;apply app_wd; auto.<br/>
+intros.<br/>
+&nbsp;&nbsp;apply pi_wd; auto.<br/>
+&nbsp;&nbsp;rewrite IHM2.<br/>
+&nbsp;&nbsp;apply subst_ext.<br/>
+&nbsp;&nbsp;apply liftsub_Comp.<br/>
+intros.<br/>
+&nbsp;&nbsp;apply lda_wd; auto.<br/>
+&nbsp;&nbsp;rewrite IHM2.<br/>
+&nbsp;&nbsp;apply subst_ext.<br/>
+&nbsp;&nbsp;apply liftsub_Comp.<br/>
+<code class="keyword">Qed</code>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+<code class="keyword">Lemma</code> <a name="subst_is_subvar"></a>subst_is_subvar : forall m M n (rho : fin m -&gt; fin n),<br/>
+&nbsp;&nbsp;subst M (var (n:=n) (O) rho) = subvar M rho.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction M; simpl; auto.<br/>
+intros.<br/>
+&nbsp;&nbsp;apply app_wd; auto.<br/>
+intros.<br/>
+&nbsp;&nbsp;apply pi_wd; auto.<br/>
+&nbsp;&nbsp;rewrite &lt;- IHM2.<br/>
+&nbsp;&nbsp;apply subst_ext.<br/>
+&nbsp;&nbsp;apply funceq_sym.<br/>
+&nbsp;&nbsp;apply Sfun_is_liftsub.<br/>
+intros.<br/>
+&nbsp;&nbsp;apply lda_wd; auto.<br/>
+&nbsp;&nbsp;rewrite &lt;- IHM2.<br/>
+&nbsp;&nbsp;apply subst_ext.<br/>
+&nbsp;&nbsp;apply funceq_sym.<br/>
+&nbsp;&nbsp;apply Sfun_is_liftsub.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subst_liftterm"></a>subst_liftterm : forall m M n (sigma : fin (S m) -&gt; term n),<br/>
+&nbsp;&nbsp;subst (liftterm M) sigma = subst M (sigma (O) up (n:=m)).<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+unfold liftterm.<br/>
+apply subst_subvar.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftterm_subst"></a>liftterm_subst : forall m M n (sigma : fin m -&gt; term n),<br/>
+&nbsp;&nbsp;liftterm (subst M sigma) = subst M (up (n:=n) (OO) sigma).<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold liftterm.<br/>
+intros.<br/>
+apply subvar_subst.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftterm_subst'"></a>liftterm_subst' : forall m n M (sigma : fin m -&gt; term n),<br/>
+&nbsp;&nbsp;liftterm (subst M sigma) = subst (liftterm M) (liftsub sigma).<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+rewrite subst_liftterm.<br/>
+apply liftterm_subst with (sigma:= sigma).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="CComp"></a>CComp m n p (rho : fin n -&gt; term p) (sigma : fin m -&gt; term n) := fun x =&gt; subst (sigma x) rho.<br/>
+<code class="keyword">Implicit</code> Arguments CComp [m n p].<br/>
+<code class="keyword">Notation</code> "rho [] sigma" := (CComp rho sigma) (at level 50).<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftsub_CComp"></a>liftsub_CComp : forall m n p (rho : fin n -&gt; term p) (sigma : fin m -&gt; term n), liftsub (rho [] sigma) =f (liftsub rho [] liftsub sigma).<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold funceq.<br/>
+destruct x; simpl.<br/>
+unfold CComp.<br/>
+&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;rewrite liftterm_subst.<br/>
+&nbsp;&nbsp;rewrite subst_liftterm.<br/>
+&nbsp;&nbsp;reflexivity.<br/>
+reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="CComp_is_Comp"></a>CComp_is_Comp : forall m n p (sigma : fin n -&gt; fin p) (rho : fin m -&gt; term n), (fun x =&gt; sigma x) [] rho =f sigma (OO) rho.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold funceq.<br/>
+unfold CComp.<br/>
+unfold Comp.<br/>
+intros.<br/>
+apply subst_is_subvar with (rho:= sigma).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="subst_lm"></a>subst_lm : forall m M n p (rho : fin m -&gt; term n) (sigma : fin n -&gt; term p),<br/>
+&nbsp;&nbsp;subst (subst M rho) sigma = subst M (sigma [] rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+induction M; simpl; auto.<br/>
+intros.<br/>
+&nbsp;&nbsp;apply app_wd; auto.<br/>
+intros.<br/>
+&nbsp;&nbsp;apply pi_wd; auto.<br/>
+&nbsp;&nbsp;rewrite IHM2.<br/>
+&nbsp;&nbsp;apply subst_ext.<br/>
+&nbsp;&nbsp;apply funceq_sym.<br/>
+&nbsp;&nbsp;apply liftsub_CComp.<br/>
+intros.<br/>
+&nbsp;&nbsp;apply lda_wd; auto.<br/>
+&nbsp;&nbsp;rewrite IHM2.<br/>
+&nbsp;&nbsp;apply subst_ext.<br/>
+&nbsp;&nbsp;apply funceq_sym.<br/>
+&nbsp;&nbsp;apply liftsub_CComp.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="botsub"></a>botsub n (N : term n) := fun x : fin (S n) =&gt;<br/>
+&nbsp;&nbsp;match x return term n with<br/>
+&nbsp;&nbsp;| None =&gt; N<br/>
+&nbsp;&nbsp;| Some y =&gt; var y<br/>
+&nbsp;&nbsp;end.<br/>
+<code class="keyword">Implicit</code> Arguments botsub [n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="botsub_up"></a>botsub_up n (M : term n) : botsub M (O) up (n:=n) =f var (n:=n).<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+intro x.<br/>
+reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="botsub_Sfun"></a>botsub_Sfun : forall m n (N : term m) (rho : fin m -&gt; fin n),<br/>
+&nbsp;&nbsp;rho (OO) botsub N =f botsub (subvar N rho) (O) Sfun rho.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold funceq.<br/>
+destruct x; auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="botsub_liftsub"></a>botsub_liftsub : forall m n (N : term m) (rho : fin m -&gt; term n),<br/>
+&nbsp;&nbsp;rho [] botsub N =f botsub (subst N rho) [] liftsub rho.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold funceq.<br/>
+destruct x.<br/>
+&nbsp;unfold CComp.<br/>
+&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;rewrite subst_liftterm.<br/>
+&nbsp;&nbsp;&nbsp;symmetry.<br/>
+&nbsp;&nbsp;&nbsp;apply triv_subst with (M:= rho f).<br/>
+&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="subbot"></a>subbot n M (N : term n) := subst M (botsub N).<br/>
+<code class="keyword">Implicit</code> Arguments subbot [n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subvar_subbot"></a>subvar_subbot : forall (m n : nat) (M : term (S m)) (N : term m) (rho : fin m -&gt; fin n),<br/>
+&nbsp;&nbsp;subvar (subbot M N) rho = subbot (subvar M (Sfun rho)) (subvar N rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+unfold subbot.<br/>
+rewrite subst_subvar.<br/>
+rewrite subvar_subst.<br/>
+apply subst_ext.<br/>
+apply botsub_Sfun.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftterm_subbot"></a>liftterm_subbot : forall (n : nat) (M : term (S n)) (N : term n),<br/>
+&nbsp;&nbsp;liftterm (subbot M N) = subbot (subvar M (Sfun (up (n:= n)))) (liftterm N).<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+unfold liftterm.<br/>
+apply subvar_subbot with (rho:= up (n:= n)).<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subbot_subvar"></a>subbot_subvar : forall m M n (rho : fin m -&gt; fin (S n)) N,<br/>
+&nbsp;&nbsp;subbot (subvar M rho) N = subst M (botsub N (O) rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+unfold subbot.<br/>
+apply subst_subvar.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subst_subbot"></a>subst_subbot : forall (m n : nat) (M : term (S n)) (N : term n) (rho : fin n -&gt; term m),<br/>
+&nbsp;&nbsp;subst (subbot M N) rho = subbot (subst M (liftsub rho)) (subst N rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+unfold subbot.<br/>
+repeat rewrite subst_lm.<br/>
+apply subst_ext.<br/>
+apply botsub_liftsub.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subst_liftterm_botsub"></a>subst_liftterm_botsub : forall n (M N : term n),<br/>
+&nbsp;&nbsp;subst (liftterm M) (botsub N) = M.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+rewrite subst_liftterm.<br/>
+apply triv_subst with (M:= M).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subbot_liftterm"></a>subbot_liftterm : forall n (M N : term n), subbot (liftterm M) N = M.<br/>
+<code class="keyword">Proof</code>.<br/>
+exact subst_liftterm_botsub.<br/>
+<code class="keyword">Qed</code>.</code>
+<hr/><a href="index.html">Index</a><hr/><font size="-1">This page has been generated by <a href="http://www.lri.fr/~filliatr/coqdoc/">coqdoc</a></font>
+</body>
+</html>

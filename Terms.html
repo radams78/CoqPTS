@@ -1,0 +1,193 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset="><link rel="stylesheet" href="style.css" type="text/css"><title>Terms</title>
+</head>
+
+<body>
+
+<h1>Library Terms</h1>
+
+<code>
+<code class="keyword">Require</code> <code class="keyword">Export</code> <a href="Finite.html">Finite</a>.<br/>
+
+<br/>
+<code class="keyword">Parameter</code> <a name="sort"></a>sort : Set.<br/>
+
+<br/>
+<code class="keyword">Inductive</code> <a name="term"></a>term : nat -&gt; Set :=<br/>
+&nbsp;&nbsp;<a name="var"></a>var :&gt; forall n, fin n -&gt; term n |<br/>
+&nbsp;&nbsp;<a name="srt"></a>srt : forall n, sort -&gt; term n |<br/>
+&nbsp;&nbsp;<a name="app"></a>app : forall n, term n -&gt; term n -&gt; term n |<br/>
+&nbsp;&nbsp;<a name="pi"></a>pi : forall n, term n -&gt; term (S n) -&gt; term n |<br/>
+&nbsp;&nbsp;<a name="lda"></a>lda : forall n, term n -&gt; term (S n) -&gt; term n.<br/>
+<code class="keyword">Implicit</code> Arguments var [n].<br/>
+<code class="keyword">Implicit</code> Arguments srt [n].<br/>
+<code class="keyword">Implicit</code> Arguments app [n].<br/>
+<code class="keyword">Implicit</code> Arguments pi [n].<br/>
+<code class="keyword">Implicit</code> Arguments lda [n].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="antivar"></a>antivar n (M : term n) :=<br/>
+match M in (term n) return (option (fin n)) with<br/>
+| var n x   =&gt; Some x<br/>
+| srt _ _   =&gt; None<br/>
+| app _ _ _ =&gt; None<br/>
+| pi  _ _ _ =&gt; None<br/>
+| lda _ _ _ =&gt; None<br/>
+end.<br/>
+<code class="keyword">Implicit</code> Arguments antivar [n].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="appleft"></a>appleft n (M : term n) :=<br/>
+match M in (term n) return (term n) with<br/>
+| var n x   =&gt; x<br/>
+| srt n s   =&gt; srt s<br/>
+| app n P _ =&gt; P<br/>
+| pi  n A B =&gt; pi A B<br/>
+| lda n A P =&gt; lda A P<br/>
+end.<br/>
+<code class="keyword">Implicit</code> Arguments appleft [n].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="appright"></a>appright n (M : term n) :=<br/>
+match M in (term n) return (term n) with<br/>
+| var n x   =&gt; x<br/>
+| srt n s   =&gt; srt s<br/>
+| app n _ Q =&gt; Q<br/>
+| pi  n A B =&gt; pi A B<br/>
+| lda n A P =&gt; lda A P<br/>
+end.<br/>
+<code class="keyword">Implicit</code> Arguments appright [n].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="quantleft"></a>quantleft n (M : term n) :=<br/>
+match M in (term n) return (term n) with<br/>
+| var n x   =&gt; x<br/>
+| srt n s   =&gt; srt s<br/>
+| app n P Q =&gt; app P Q<br/>
+| pi  n A B =&gt; A<br/>
+| lda n A P =&gt; A<br/>
+end.<br/>
+<code class="keyword">Implicit</code> Arguments quantleft [n].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="quantright"></a>quantright n (M : term n) :=<br/>
+match M in (term n) return (term (S n)) with<br/>
+| var n x   =&gt; bot<br/>
+| srt n s   =&gt; bot<br/>
+| app n P Q =&gt; bot<br/>
+| pi  n A B =&gt; B<br/>
+| lda n A P =&gt; P<br/>
+end.<br/>
+<code class="keyword">Implicit</code> Arguments quantright [n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="var_wd"></a>var_wd : forall n (x y : fin n), x = y -&gt; var x = var y.<br/>
+<code class="keyword">Proof</code>.<br/>
+intro n.<br/>
+apply f_equal.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="var_inj"></a>var_inj : forall n (x y : fin n), var x = var y -&gt; x = y.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+apply Some_inj.<br/>
+change (Some x) with (antivar x).<br/>
+change (Some y) with (antivar y).<br/>
+apply f_equal with (term n).<br/>
+assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="srt_wd"></a>srt_wd : forall n s t, s = t -&gt; srt (n:= n) s = srt t.<br/>
+<code class="keyword">Proof</code>.<br/>
+intro n.<br/>
+apply f_equal.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="srt_inj"></a>srt_inj : forall n s t, srt (n:= n) s = srt t -&gt; s = t.<br/>
+<code class="keyword">Proof</code>.<br/>
+injection 1.<br/>
+auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="app_wd"></a>app_wd : forall n (M M' N N' : term n), M = M' -&gt; N = N' -&gt; app M N = app M' N'.<br/>
+<code class="keyword">Proof</code>.<br/>
+intro n.<br/>
+apply f_equal2.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="app_injl"></a>app_injl : forall n (M M' N N' : term n), app M N = app M' N' -&gt; M = M'.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros n M M' N N'.<br/>
+change M at 2 with (appleft (app M N)).<br/>
+change M' at 2 with (appleft (app M' N')).<br/>
+apply f_equal.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="app_injr"></a>app_injr : forall n (M M' N N' : term n), app M N = app M' N' -&gt; N = N'.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros n M M' N N'.<br/>
+change N at 2 with (appright (app M N)).<br/>
+change N' at 2 with (appright (app M' N')).<br/>
+apply f_equal.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="pi_wd"></a>pi_wd : forall n (A A' : term n) (B B' : term (S n)), A = A' -&gt; B = B' -&gt; pi A B = pi A' B'.<br/>
+<code class="keyword">Proof</code>.<br/>
+intro n.<br/>
+apply f_equal2.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="pi_injl"></a>pi_injl : forall n (A A' : term n) (B B' : term (S n)), pi A B = pi A' B' -&gt; A = A'.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros n A A' B B'.<br/>
+change A at 2 with (quantleft (pi A B)).<br/>
+change A' at 2 with (quantleft (pi A' B')).<br/>
+apply f_equal.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="pi_injr"></a>pi_injr : forall n (A A' : term n) (B B' : term (S n)), pi A B = pi A' B' -&gt; B = B'.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros n A A' B B'.<br/>
+change B at 2 with (quantright (pi A B)).<br/>
+change B' at 2 with (quantright (pi A' B')).<br/>
+apply f_equal.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="lda_wd"></a>lda_wd : forall n (A A' : term n) (M M' : term (S n)), A = A' -&gt; M = M' -&gt; lda A M = lda A' M'.<br/>
+<code class="keyword">Proof</code>.<br/>
+intro n.<br/>
+apply f_equal2.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="lda_injl"></a>lda_injl : forall n (A A' : term n) (M M' : term (S n)), lda A M = lda A' M' -&gt; A = A'.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros n A A' M M'.<br/>
+change A at 2 with (quantleft (lda A M)).<br/>
+change A' at 2 with (quantleft (lda A' M')).<br/>
+apply f_equal.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="lda_injr"></a>lda_injr : forall n (A A' : term n) (M M' : term (S n)), lda A M = lda A' M' -&gt; M = M'.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros n A A' M M'.<br/>
+change M at 2 with (quantright (lda A M)).<br/>
+change M' at 2 with (quantright (lda A' M')).<br/>
+apply f_equal.<br/>
+<code class="keyword">Qed</code>.<br/>
+</code>
+<hr/><a href="index.html">Index</a><hr/><font size="-1">This page has been generated by <a href="http://www.lri.fr/~filliatr/coqdoc/">coqdoc</a></font>
+</body>
+</html>

@@ -1,0 +1,690 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset="><link rel="stylesheet" href="style.css" type="text/css"><title>String</title>
+</head>
+
+<body>
+
+<h1>Library String</h1>
+
+<code>
+<code class="keyword">Require</code> <code class="keyword">Import</code> Arith.<br/>
+<code class="keyword">Require</code> <code class="keyword">Export</code> <a href="PTS.html">PTS</a>.<br/>
+<code class="keyword">Require</code> <code class="keyword">Import</code> <a href="CR.html">CR</a>.<br/>
+<code class="keyword">Require</code> <code class="keyword">Import</code> <a href="Meta.html">Meta</a>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="lt_eq_lt_lm"></a>lt_eq_lt_lm : forall n, (lt_eq_lt_dec n n) = (inleft (n &lt; n) (right (n &lt; n) (refl_equal n))).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction n; simpl.<br/>
+&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;rewrite IHn.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Inductive</code> <a name="string"></a>string (m : nat) : nat -&gt; Set :=<br/>
+&nbsp;&nbsp;<a name="emp"></a>emp : string m m |<br/>
+&nbsp;&nbsp;<a name="cons"></a>cons : forall n : nat, term n -&gt; string m (S n) -&gt; string m n.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments emp [m].<br/>
+<code class="keyword">Implicit</code> Arguments cons [m n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="string_leq"></a>string_leq : forall m n, string m n -&gt; le n m.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;induction 1.<br/>
+&nbsp;&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;&nbsp;apply le_trans with (S n); auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="head"></a>head : forall m n, string m n -&gt; lt n m -&gt; term n.<br/>
+&nbsp;&nbsp;induction 1.<br/>
+&nbsp;&nbsp;&nbsp;intro.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim lt_irrefl with m.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;intro.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments head [m n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="head_wd"></a>head_wd : forall m n (Delta : string m n) l l', head Delta l = head Delta l'.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;induction Delta; simpl.<br/>
+&nbsp;&nbsp;&nbsp;intro l.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim lt_irrefl with m.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="tail"></a>tail : forall m n, string m n -&gt; lt n m -&gt; string m (S n).<br/>
+&nbsp;induction 1.<br/>
+&nbsp;&nbsp;intro.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim lt_irrefl with m.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;intro.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments tail [m n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="tail_wd"></a>tail_wd : forall m n (Delta : string m n) l l', tail Delta l = tail Delta l'.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction Delta; simpl.<br/>
+&nbsp;&nbsp;intro.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim lt_irrefl with m.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="string_id"></a>string_id : forall m n, string m n -&gt; string m n.<br/>
+&nbsp;<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;intros m n Delta.<br/>
+&nbsp;&nbsp;case (lt_eq_lt_dec m n).<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;elim lt_not_le with m n.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply string_leq.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;rewrite e.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exact emp.<br/>
+&nbsp;&nbsp;&nbsp;intro.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exact (cons (head Delta l) (tail Delta l)).<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments string_id [m n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="string_id_is_id"></a>string_id_is_id : forall m n (Delta : string m n), Delta = string_id Delta.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction Delta; unfold string_id.<br/>
+&nbsp;&nbsp;rewrite lt_eq_lt_lm with m.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;case (lt_eq_lt_dec m n).<br/>
+&nbsp;&nbsp;destruct s.<br/>
+&nbsp;&nbsp;&nbsp;elim (lt_not_le m n l (string_leq m n (cons t Delta))).<br/>
+&nbsp;&nbsp;&nbsp;elim le_Sn_n with n.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply le_trans with m.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply string_leq.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite e.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="string_n_n"></a>string_n_n : forall n (Delta : string n n), Delta = emp.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;intros.<br/>
+&nbsp;rewrite string_id_is_id with n n Delta.<br/>
+&nbsp;unfold string_id.<br/>
+&nbsp;rewrite lt_eq_lt_lm with n.<br/>
+&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="string_m_n"></a>string_m_n : forall m n (Delta : string m n) l, Delta = cons (head Delta l) (tail Delta l).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;intros.<br/>
+&nbsp;transitivity (string_id Delta).<br/>
+&nbsp;&nbsp;apply string_id_is_id.<br/>
+&nbsp;&nbsp;unfold string_id.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;case (lt_eq_lt_dec m n).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct s.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim (lt_not_le m n l0 (string_leq m n Delta)).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;absurd (n &lt; m).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite e.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply lt_irrefl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro l'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite head_wd with m n Delta l' l.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite tail_wd with m n Delta l' l.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="red_string"></a>red_string : forall m n, string m n -&gt; string m n -&gt; Prop.<br/>
+&nbsp;induction 1.<br/>
+&nbsp;&nbsp;intro.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact True.<br/>
+&nbsp;&nbsp;intro Delta'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (red t (head Delta' (string_leq m (S n) H)) /\ IHstring (tail Delta' (string_leq m (S n) H))).<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments red_string [m n].<br/>
+<code class="keyword">Notation</code> "Delta -&gt;&gt;ss Delta'" := (red_string Delta Delta') (at level 80).<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="red_string_ref"></a>red_string_ref : forall m n (Delta : string m n), Delta -&gt;&gt;ss Delta.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction Delta; split; auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="Pi"></a>Pi : forall m n, string m n -&gt; term m -&gt; term n.<br/>
+&nbsp;induction 1.<br/>
+&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;intro B. <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (pi t (IHstring B)).<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments Pi [m n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="red_Pi_inv"></a>red_Pi_inv : forall m n (Delta : string m n) A B, red (Pi Delta A) B -&gt;<br/>
+&nbsp;&nbsp;exists Delta', exists A', Delta -&gt;&gt;ss Delta' /\ A -&gt;&gt; A' /\ B = Pi Delta' A'.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction Delta; intros.<br/>
+&nbsp;&nbsp;split with (emp (m:=m)).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split with B.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split; auto.<br/>
+&nbsp;&nbsp;elim Gen_red_pi with n t (Pi Delta A) B.<br/>
+&nbsp;&nbsp;&nbsp;intro t'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into C.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim IHDelta with A C.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro Delta0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into A'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with (cons t' Delta0).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with A'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite H0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="Lda"></a>Lda : forall m n, string m n -&gt; term m -&gt; term n.<br/>
+&nbsp;induction 1.<br/>
+&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;intro B.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (lda t (IHstring B)).<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments Lda [m n].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="concat"></a>concat : forall m n, context n -&gt; string m n -&gt; context m.<br/>
+&nbsp;induction 2.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;exact (IHstring (H,t)).<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments concat [m n].<br/>
+<code class="keyword">Notation</code> "Gamma @ Delta" := (concat Gamma Delta) (at level 60).<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="ctxt_strng"></a>ctxt_strng : forall m n Gamma (Theta : string m n) , valid (Gamma @ Theta) -&gt; valid Gamma.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction Theta; simpl.<br/>
+&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;intro.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim (IHTheta (Gamma, t)).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro s.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Context_Validity.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Inductive</code> <a name="mtch"></a>mtch (m p : nat) : nat -&gt; nat -&gt; Set :=<br/>
+&nbsp;&nbsp;<a name="mtchO"></a>mtchO : mtch m p m p |<br/>
+&nbsp;&nbsp;<a name="mtchS"></a>mtchS : forall (n q : nat), mtch m p (S n) (S q) -&gt; mtch m p n q.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments mtchO [m p].<br/>
+<code class="keyword">Implicit</code> Arguments mtchS [m p n q].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="mtch_leql"></a>mtch_leql : forall m p n q, mtch m p n q -&gt; le n m.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction 1.<br/>
+&nbsp;&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;&nbsp;apply le_trans with (S n); auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="mtch_leqr"></a>mtch_leqr : forall m p n q, mtch m p n q -&gt; le q p.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction 1.<br/>
+&nbsp;&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;&nbsp;apply le_trans with (S q); auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="mtch_Sm_Sn"></a>mtch_Sm_Sn : forall m n, string m n -&gt; mtch m (S m) n (S n).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction 1.<br/>
+&nbsp;&nbsp;exact mtchO.<br/>
+&nbsp;&nbsp;apply mtchS.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="pre_mtch_Sm_Sn'"></a>pre_mtch_Sm_Sn' : forall m' n', string m' n' -&gt; forall m n, m' = S m -&gt; n' = S n -&gt; mtch m (S m) n (S n).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction 1.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;replace n with m.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exact mtchO.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply eq_add_S.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;transitivity m'; auto.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply mtchS.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply IHstring; auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="mtch_Sm_Sn'"></a>mtch_Sm_Sn' : forall m n, string (S m) (S n) -&gt; mtch m (S m) n (S n).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;intros.<br/>
+&nbsp;apply pre_mtch_Sm_Sn' with (S m) (S n); auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="pre_mtch_Sm_Sn_inv"></a>pre_mtch_Sm_Sn_inv : forall m' n', string m' n' -&gt; forall m n, m' = S m -&gt; n' = S n -&gt; mtch (S m) m (S n) n.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction 1.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;replace n with m.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exact mtchO.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply eq_add_S.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;transitivity m'; auto.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply mtchS.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply IHstring; auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="mtch_Sm_Sn_inv"></a>mtch_Sm_Sn_inv : forall m n, string (S m) (S n) -&gt; mtch (S m) m (S n) n.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;intros.<br/>
+&nbsp;apply pre_mtch_Sm_Sn_inv with (S m) (S n); auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="strsubvar"></a>strsubvar : forall m p n q, mtch m p n q -&gt; string m n -&gt; (fin n -&gt; fin q) -&gt; string p q.<br/>
+&nbsp;induction 1.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact emp.<br/>
+&nbsp;&nbsp;intros Delta rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (cons (subvar (head Delta (mtch_leql _ _ _ _ H)) rho) (IHmtch (tail Delta (mtch_leql _ _ _ _ H)) (Sfun rho))).<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments strsubvar [m p n q].<br/>
+&nbsp;&nbsp;<br/>
+<code class="keyword">Definition</code> <a name="liftstring"></a>liftstring m n (Delta : string m n) := strsubvar (mtch_Sm_Sn _ _ Delta) Delta (up (n:=n)).<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments liftstring [m n].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="subvar_lift"></a>subvar_lift : forall m p n q, mtch m p n q -&gt; (fin n -&gt; fin q) -&gt; fin m -&gt; fin p.<br/>
+&nbsp;induction 1.<br/>
+&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;intro rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (IHmtch (Sfun rho)).<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments subvar_lift [m p n q].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="valid_concat"></a>valid_concat : forall m p n q (e : mtch m p n q) Gamma Delta rho Theta,<br/>
+&nbsp;&nbsp;subctxt Gamma Delta rho -&gt; valid (Gamma @ Theta) -&gt; valid Delta -&gt; valid (Delta @ strsubvar e Theta rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction e; simpl.<br/>
+&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_m_n with m n Theta (mtch_leql _ _ _ _ e) in H0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply IHe with (Gamma, head Theta (mtch_leql _ _ _ _ e)).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Weak_subctxt; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim (ctxt_strng _ (S n) (Gamma, head Theta (mtch_leql _ _ _ _ e)) (tail Theta (mtch_leql _ _ _ _ e))).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros s H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Weakening with (Delta:= Gamma) (A:= srt (n:=n) s) (rho:= rho); assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Pi_subvar"></a>Pi_subvar : forall m p n q (e : mtch m p n q) Delta B rho,<br/>
+&nbsp;&nbsp;subvar (Pi Delta B) rho = Pi (strsubvar e Delta rho) (subvar B (subvar_lift e rho)).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction e; simpl.<br/>
+&nbsp;&nbsp;intro Delta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_n_n with m Delta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;intros Delta B rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_m_n with m n Delta (mtch_leql _ _ _ _ e).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHe.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Lda_subvar"></a>Lda_subvar : forall m p n q (e : mtch m p n q) Delta M rho,<br/>
+&nbsp;&nbsp;subvar (Lda Delta M) rho = Lda (strsubvar e Delta rho) (subvar M (subvar_lift e rho)).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction e; simpl.<br/>
+&nbsp;&nbsp;intro Delta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_n_n with m Delta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;intros Delta B rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_m_n with m n Delta (mtch_leql _ _ _ _ e).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHe.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subctxt_concat"></a>subctxt_concat : forall m p n q (e : mtch m p n q) Gamma Delta rho Theta,<br/>
+&nbsp;&nbsp;subctxt Gamma Delta rho -&gt; subctxt (Gamma @ Theta) (Delta @ strsubvar e Theta rho) (subvar_lift e rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction e; simpl.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_n_n with m Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;replace (Gamma @ Theta) with (((Gamma, head Theta (mtch_leql _ _ _ _ e)) : context (S n)) @ tail Theta (mtch_leql _ _ _ _ e)).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply IHe.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Weak_subctxt.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_m_n with m n Theta (mtch_leql _ _ _ _ e).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Pi_subvar_inv"></a>Pi_subvar_inv : forall m p n q (e : mtch m p n q) Delta M B rho, subvar M rho = Pi Delta B -&gt; <br/>
+&nbsp;&nbsp;exists Delta', exists B', M = Pi Delta' B' /\ Delta = strsubvar e Delta' rho /\ B = subvar B' (subvar_lift e rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction e; simpl.<br/>
+&nbsp;&nbsp;intro Delta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_n_n with p Delta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split with (emp (m:=m)).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split with M.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;intro Delta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_m_n with p q Delta (mtch_leqr m p (S n) (S q) e).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim subvar_pi with n M q rho (head Delta (mtch_leqr m p (S n) (S q) e)) (Pi (tail Delta (mtch_leqr m p (S n) (S q) e)) B).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro A'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into B'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim IHe with (tail Delta (mtch_leqr m p (S n) (S q) e)) B' B (Sfun rho).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro Delta0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into B0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with (cons A' Delta0).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with B0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split; simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- H1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.  <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="red_subvar_Pi"></a>red_subvar_Pi : forall m p n q (e : mtch m p n q) M rho Delta B,<br/>
+&nbsp;&nbsp;subvar M rho -&gt;&gt; Pi Delta B -&gt; exists Delta', exists B',<br/>
+&nbsp;&nbsp;Delta = strsubvar e Delta' rho /\ B = subvar B' (subvar_lift e rho) /\ M -&gt;&gt; Pi Delta' B'.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;intros.<br/>
+&nbsp;elim red_subvar_inv with n q M rho (Pi Delta B).<br/>
+&nbsp;&nbsp;intro M'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim Pi_subvar_inv with m p n q e Delta M' B rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro Delta'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into B'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with Delta'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with B'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="strsubst"></a>strsubst : forall m p n q, mtch m p n q -&gt; string m n -&gt; (fin n -&gt; term q) -&gt; string p q.<br/>
+&nbsp;induction 1.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact emp.<br/>
+&nbsp;&nbsp;intros Delta rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (cons (subst (head Delta (mtch_leql _ _ _ _ H)) rho) (IHmtch (tail Delta (mtch_leql _ _ _ _ H)) (liftsub rho))).<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments strsubst [m p n q].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="subst_lift"></a>subst_lift : forall m p n q, mtch m p n q -&gt; (fin n -&gt; term q) -&gt; fin m -&gt; term p.<br/>
+&nbsp;induction 1.<br/>
+&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;intro rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (IHmtch (liftsub rho)).<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments subst_lift [m p n q].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Pi_subst"></a>Pi_subst : forall m p n q (e : mtch m p n q) Delta B rho,<br/>
+&nbsp;&nbsp;subst (Pi Delta B) rho = Pi (strsubst e Delta rho) (subst B (subst_lift e rho)).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction e; simpl.<br/>
+&nbsp;&nbsp;intro Delta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_n_n with m Delta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_m_n with m n Delta (mtch_leql _ _ _ _ e).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHe.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Lda_subst"></a>Lda_subst : forall m p n q (e : mtch m p n q) Delta B rho,<br/>
+&nbsp;&nbsp;subst (Lda Delta B) rho = Lda (strsubst e Delta rho) (subst B (subst_lift e rho)).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction e; simpl; intros.<br/>
+&nbsp;&nbsp;rewrite string_n_n with m Delta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;rewrite string_m_n with m n Delta (mtch_leql _ _ _ _ e).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHe.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="subbot_string"></a>subbot_string m n (Delta : string (S m) (S n)) M :=<br/>
+&nbsp;&nbsp;strsubst (mtch_Sm_Sn_inv _ _ Delta) Delta (botsub M).<br/>
+<code class="keyword">Implicit</code> Arguments subbot_string [m n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Pi_subbot_srt"></a>Pi_subbot_srt : forall m n (Delta : string (S m) (S n)) s M,<br/>
+&nbsp;&nbsp;subbot (Pi Delta (srt s)) M = Pi (subbot_string Delta M) (srt s).<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+exact (Pi_subst (S m) m (S n) n (mtch_Sm_Sn_inv _ _ Delta) Delta (srt s) (botsub M)).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="valid_concat'"></a>valid_concat' : forall m p n q (e : mtch m p n q) Gamma Delta rho Theta,<br/>
+&nbsp;&nbsp;Delta |= rho ; Gamma -&gt; valid (Gamma @ Theta) -&gt; valid Delta -&gt; valid (Delta @ strsubst e Theta rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+induction e; simpl.<br/>
+&nbsp;trivial.<br/>
+&nbsp;intros Gamma Delta rho Theta.<br/>
+&nbsp;&nbsp;&nbsp;rewrite string_m_n with m n Theta (mtch_leql _ _ _ _ e).<br/>
+&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;elim (ctxt_strng _ (S n) (Gamma, head Theta (mtch_leql _ _ _ _ e)) (tail Theta (mtch_leql _ _ _ _ e))); auto.<br/>
+&nbsp;&nbsp;&nbsp;intros s H2.<br/>
+&nbsp;&nbsp;&nbsp;apply IHe with (Gamma, head Theta (mtch_leql m p (S n) (S q) e)).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply Weak_satisfy with s; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split with s.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Substitution with (sigma:= rho) (A:= srt (n:=n) s) (Delta:= Gamma); assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+<code class="keyword">Lemma</code> <a name="satisfy_concat"></a>satisfy_concat : forall m p n q (e : mtch m p n q) Gamma Delta rho Theta,<br/>
+&nbsp;&nbsp;Delta |= rho ; Gamma -&gt; valid (Gamma @ Theta) -&gt; valid Delta -&gt;<br/>
+&nbsp;&nbsp;Delta @ strsubst e Theta rho |= subst_lift e rho ; Gamma @ Theta.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction e; simpl.<br/>
+&nbsp;&nbsp;intros Gamma Delta rho Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_n_n with m Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;intros Gamma Delta rho Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_m_n with m n Theta (mtch_leql _ _ _ _ e).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply IHe.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim (ctxt_strng m (S n) (Gamma, head Theta (mtch_leql _ _ _ _ e)) (tail Theta (mtch_leql _ _ _ _ e))); auto.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros s H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Weak_satisfy with s; auto.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim (ctxt_strng m (S n) (Gamma, head Theta (mtch_leql _ _ _ _ e)) (tail Theta (mtch_leql _ _ _ _ e))); auto.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros s H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Substitution with (A:= srt (n:=n) s) (sigma:= rho) (Delta:= Gamma); assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+<code class="keyword">Lemma</code> <a name="conv_Pi_srt"></a>conv_Pi_srt : forall m p (Delta : string m p) n (Theta : string n p) s s',<br/>
+&nbsp;&nbsp;Pi Delta (srt s) ~= Pi Theta (srt s') -&gt; m = n.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction Delta; simpl.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;case (lt_eq_lt_dec n m).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim lt_not_le with n m.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply string_leq.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_m_n with n m Theta l in H.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim not_conv_pi_srt with m (head Theta l) (Pi (tail Theta l) (srt s')) s.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_sym.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;intro n0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;case (lt_eq_lt_dec n0 n).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim lt_not_le with n0 n.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply string_leq.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite e.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clear n0 e.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_n_n with n Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clear Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim not_conv_pi_srt with n t (Pi Delta (srt s)) s'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_m_n with n0 n Theta l in H.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;simpl in H.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply IHDelta with (tail Theta l) s s'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_pi_injr with t (head Theta l).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="conv_Pi_srt'"></a>conv_Pi_srt' : forall m p (Delta : string m p) n (Theta : string n p) s s',<br/>
+&nbsp;&nbsp;Pi Delta (srt s) ~= Pi Theta (srt s') -&gt; s = s'.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction Delta.<br/>
+&nbsp;&nbsp;intro n.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;case (lt_eq_lt_dec m n).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_m_n with n m Theta l.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim not_conv_pi_srt with m (head Theta l) (Pi (tail Theta l) (srt s')) s.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_sym.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite e.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_n_n with n Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exact (conv_srt_inj n).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros H Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim lt_not_le with n m.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply string_leq.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;intro p.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;case (lt_eq_lt_dec p n).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim lt_not_le with p n.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply string_leq.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite e.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_n_n with n Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim not_conv_pi_srt with n t (Pi Delta (srt s)) s'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros H Theta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite string_m_n with p n Theta H.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply IHDelta with p (tail Theta H).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_pi_injr with t (head Theta H).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.</code>
+<hr/><a href="index.html">Index</a><hr/><font size="-1">This page has been generated by <a href="http://www.lri.fr/~filliatr/coqdoc/">coqdoc</a></font>
+</body>
+</html>

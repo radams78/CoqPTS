@@ -1,0 +1,530 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset="><link rel="stylesheet" href="style.css" type="text/css"><title>Labterms</title>
+</head>
+
+<body>
+
+<h1>Library Labterms</h1>
+
+<code>
+<code class="keyword">Require</code> <code class="keyword">Export</code> <a href="PTS.html">PTS</a>.<br/>
+
+<br/>
+<code class="keyword">Inductive</code> <a name="lab_term"></a>lab_term : nat -&gt; Set :=<br/>
+&nbsp;&nbsp;<a name="lab_var"></a>lab_var :&gt; forall n : nat, fin n -&gt; lab_term n |<br/>
+&nbsp;&nbsp;<a name="lab_srt"></a>lab_srt : forall n : nat, sort -&gt; lab_term n |<br/>
+&nbsp;&nbsp;<a name="lab_lda"></a>lab_lda : forall n : nat, lab_term n -&gt; lab_term (S n) -&gt; lab_term n |<br/>
+&nbsp;&nbsp;<a name="lab_pi"></a>lab_pi  : forall n : nat, lab_term n -&gt; lab_term (S n) -&gt; lab_term n |<br/>
+&nbsp;&nbsp;<a name="lab_app"></a>lab_app : forall n : nat, lab_term (S n) -&gt; lab_term n -&gt; lab_term n -&gt; lab_term n.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments lab_var [n].<br/>
+<code class="keyword">Implicit</code> Arguments lab_srt [n].<br/>
+<code class="keyword">Implicit</code> Arguments lab_lda [n].<br/>
+<code class="keyword">Implicit</code> Arguments lab_pi [n].<br/>
+<code class="keyword">Implicit</code> Arguments lab_app [n].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="lab_subvar"></a>lab_subvar : forall m : nat, lab_term m -&gt; forall n : nat, (fin m -&gt; fin n) -&gt; lab_term n.<br/>
+&nbsp;&nbsp;induction 1.<br/>
+&nbsp;&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (rho f).<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (lab_srt s).<br/>
+&nbsp;&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (lab_lda (IHlab_term1 m rho) (IHlab_term2 (S m) (Sfun rho))).<br/>
+&nbsp;&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (lab_pi (IHlab_term1 m rho) (IHlab_term2 (S m) (Sfun rho))).<br/>
+&nbsp;&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (lab_app (IHlab_term1 (S m) (Sfun rho)) (IHlab_term2 m rho) (IHlab_term3 m rho)).<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments lab_subvar [m n].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="liftlabterm"></a>liftlabterm (n : nat) (M : lab_term n) : lab_term (S n) := (lab_subvar M (up (n:=n))).<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments liftlabterm [n].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="liftlabsub"></a>liftlabsub (m n : nat) (rho : fin m -&gt; lab_term n) (x : fin (S m)) : lab_term (S n) :=<br/>
+&nbsp;&nbsp;match x with<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;None =&gt; bot |<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;Some y =&gt; liftlabterm (rho y)<br/>
+&nbsp;&nbsp;end.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments liftlabsub [m n].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="lab_subst"></a>lab_subst : forall m : nat, lab_term m -&gt; forall n : nat, (fin m -&gt; lab_term n) -&gt; lab_term n.<br/>
+&nbsp;&nbsp;induction 1.<br/>
+&nbsp;&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (rho f).<br/>
+&nbsp;&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (lab_srt s).<br/>
+&nbsp;&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (lab_lda (IHlab_term1 _ rho) (IHlab_term2 (S m) (liftlabsub rho))).<br/>
+&nbsp;&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (lab_pi (IHlab_term1 _ rho) (IHlab_term2 (S m) (liftlabsub rho))).<br/>
+&nbsp;&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (lab_app (IHlab_term1 (S m) (liftlabsub rho)) (IHlab_term2 _ rho) (IHlab_term3 _ rho)).<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments lab_subst [m n].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="lab_subbot"></a>lab_subbot (n : nat) (M : lab_term (S n)) (N : lab_term n) : lab_term n :=<br/>
+&nbsp;&nbsp;lab_subst M (fun x : fin (S n) =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;match x with<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;None =&gt; N |<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Some y =&gt; lab_var y<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;end).<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments lab_subbot [n].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="unlab"></a>unlab : forall n : nat, lab_term n -&gt; term n.<br/>
+&nbsp;&nbsp;induction 1.<br/>
+&nbsp;&nbsp;exact f.<br/>
+&nbsp;&nbsp;exact (srt s).<br/>
+&nbsp;&nbsp;exact (lda IHlab_term1 IHlab_term2).<br/>
+&nbsp;&nbsp;exact (pi IHlab_term1 IHlab_term2).<br/>
+&nbsp;&nbsp;exact (app IHlab_term2 IHlab_term3).<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments unlab [n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="unlab_var"></a>unlab_var : forall (n : nat) (x : fin n) (M : lab_term n), unlab M = x -&gt; M = x.<br/>
+&nbsp;&nbsp;induction M; try discriminate 1.<br/>
+&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;intro.<br/>
+&nbsp;&nbsp;rewrite var_inj with n f x.<br/>
+&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="unlab_srt"></a>unlab_srt : forall (n : nat) (s : sort) (M : lab_term n), unlab M = srt s -&gt; M = lab_srt s.<br/>
+&nbsp;&nbsp;intros n s M.<br/>
+&nbsp;&nbsp;case M; try discriminate 1.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;rewrite srt_inj with n0 s0 s.<br/>
+&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="unlab_lda"></a>unlab_lda : forall (n : nat) (M : lab_term n) (A : term n) (N : term (S n)),<br/>
+&nbsp;&nbsp;unlab M = lda A N -&gt;<br/>
+&nbsp;&nbsp;exists A' : lab_term n, exists N' : lab_term (S n),<br/>
+&nbsp;&nbsp;M = lab_lda A' N' /\ unlab A' = A /\ unlab N' = N.<br/>
+&nbsp;&nbsp;intros n M.<br/>
+&nbsp;&nbsp;case M; try discriminate 1.<br/>
+&nbsp;&nbsp;intros m A' N' A N H.<br/>
+&nbsp;&nbsp;split with A'.<br/>
+&nbsp;&nbsp;split with N'.<br/>
+&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;apply lda_injl with (unlab N') N.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;apply lda_injr with (unlab A') A.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="unlab_pi"></a>unlab_pi : forall (n : nat) (M : lab_term n) (A : term n) (N : term (S n)),<br/>
+&nbsp;&nbsp;unlab M = pi A N -&gt;<br/>
+&nbsp;&nbsp;exists A' : lab_term n, exists N' : lab_term (S n),<br/>
+&nbsp;&nbsp;M = lab_pi A' N' /\ unlab A' = A /\ unlab N' = N.<br/>
+&nbsp;&nbsp;intros n M.<br/>
+&nbsp;&nbsp;case M; try discriminate 1.<br/>
+&nbsp;&nbsp;intros m A' N' A N H.<br/>
+&nbsp;&nbsp;split with A'.<br/>
+&nbsp;&nbsp;split with N'.<br/>
+&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;apply pi_injl with (unlab N') N.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;apply pi_injr with (unlab A') A.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="unlab_app"></a>unlab_app : forall (n : nat) (M : lab_term n) (N P : term n),<br/>
+&nbsp;&nbsp;unlab M = app N P -&gt;<br/>
+&nbsp;&nbsp;exists B' : lab_term (S n), exists N' : lab_term n, exists P' : lab_term n,<br/>
+&nbsp;&nbsp;M = lab_app B' N' P' /\ unlab N' = N /\ unlab P' = P.<br/>
+&nbsp;&nbsp;intros n M.<br/>
+&nbsp;&nbsp;case M; try discriminate 1.<br/>
+&nbsp;&nbsp;clear n M.<br/>
+&nbsp;&nbsp;intros n B' N' P' N P H.<br/>
+&nbsp;&nbsp;split with B'.<br/>
+&nbsp;&nbsp;split with N'.<br/>
+&nbsp;&nbsp;split with P'.<br/>
+&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;apply app_injl with (unlab P') P.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;apply app_injr with (unlab N') N.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="unlab_subvar"></a>unlab_subvar : forall (m : nat) (M : lab_term m) (n : nat) (rho : fin m -&gt; fin n), unlab (lab_subvar M rho) = subvar (unlab M) rho.<br/>
+&nbsp;&nbsp;induction M; auto; simpl.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHM1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHM2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHM1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHM2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHM2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHM3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="unlab_lift"></a>unlab_lift : forall (n : nat) (M : lab_term n), unlab (liftlabterm M) = liftterm (unlab M).<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;unfold liftlabterm. <br/>
+&nbsp;&nbsp;unfold liftterm.<br/>
+&nbsp;&nbsp;apply unlab_subvar.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="unlab_liftsub"></a>unlab_liftsub : forall (m n : nat) (rho : fin m -&gt; lab_term n) (x : fin (S m)),<br/>
+&nbsp;&nbsp;&nbsp;unlab (liftlabsub rho x) = liftsub (fun x0 : fin m =&gt; unlab (rho x0)) x.<br/>
+&nbsp;&nbsp;unfold liftlabsub.<br/>
+&nbsp;&nbsp;unfold liftsub.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;case x; simpl.<br/>
+&nbsp;&nbsp;intro f.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply unlab_lift.<br/>
+&nbsp;&nbsp;reflexivity.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="unlab_subst"></a>unlab_subst : forall (m : nat) (M : lab_term m) (n : nat) (rho : fin m -&gt; lab_term n), unlab (lab_subst M rho) = subst (unlab M) (fun x : fin m =&gt; unlab (rho x)).<br/>
+&nbsp;&nbsp;induction M; simpl.<br/>
+&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHM1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHM2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply lda_wd.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply subst_ext.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply unlab_liftsub.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHM1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHM2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply pi_wd.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply subst_ext.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply unlab_liftsub.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHM2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite IHM3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="unlab_subbot"></a>unlab_subbot : forall (n : nat) (M : lab_term (S n)) (N : lab_term n),<br/>
+&nbsp;&nbsp;unlab (lab_subbot M N) = subbot (unlab M) (unlab N).<br/>
+&nbsp;&nbsp;unfold lab_subbot.<br/>
+&nbsp;&nbsp;unfold subbot.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;rewrite unlab_subst.<br/>
+&nbsp;&nbsp;apply subst_ext.<br/>
+&nbsp;&nbsp;intro x.<br/>
+&nbsp;&nbsp;case x; reflexivity.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Fixpoint</code> <a name="lab_ctxt"></a>lab_ctxt (n : nat) {struct n} : Set :=<br/>
+&nbsp;&nbsp;match n with<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a name="O"></a>O =&gt; unit |<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(S m) =&gt; (prod (lab_ctxt m) (lab_term m))<br/>
+&nbsp;&nbsp;end.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="lab_typeof"></a>lab_typeof : forall (n : nat), fin n -&gt; lab_ctxt n -&gt; lab_term n.<br/>
+&nbsp;&nbsp;induction n; simpl; intros x Theta; destruct x; destruct Theta.<br/>
+&nbsp;&nbsp;exact (liftlabterm (IHn f l)).<br/>
+&nbsp;&nbsp;exact (liftlabterm l0).<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments lab_typeof [n].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="unlab_ctxt"></a>unlab_ctxt : forall n : nat, lab_ctxt n -&gt; context n.<br/>
+&nbsp;&nbsp;induction n; simpl.<br/>
+&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;induction 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (IHn a).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (unlab b).<br/>
+<code class="keyword">Defined</code>.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments unlab_ctxt [n].<br/>
+
+<br/>
+<code class="keyword">Inductive</code> <a name="lab_par_red1"></a>lab_par_red1 : forall n : nat, lab_term n -&gt; lab_term n -&gt; Prop :=<br/>
+&nbsp;&nbsp;<a name="lab_par_red1_var"></a>lab_par_red1_var : forall n : nat, forall x : fin n, lab_par_red1 _ x x |<br/>
+&nbsp;&nbsp;<a name="lab_par_red1_srt"></a>lab_par_red1_srt : forall n : nat, forall s : sort, lab_par_red1 n (lab_srt s) (lab_srt s) |<br/>
+&nbsp;&nbsp;<a name="lab_par_red1_lda"></a>lab_par_red1_lda : forall n : nat, forall A A' : lab_term n, forall M M' : lab_term (S n),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;lab_par_red1 _ A A' -&gt; lab_par_red1 _ M M' -&gt; lab_par_red1 _ (lab_lda A M) (lab_lda A' M') |<br/>
+&nbsp;&nbsp;<a name="lab_par_red1_pi"></a>lab_par_red1_pi  : forall n : nat, forall A A' : lab_term n, forall B B' : lab_term (S n),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;lab_par_red1 _ A A' -&gt; lab_par_red1 _ B B' -&gt; lab_par_red1 _ (lab_pi A B) (lab_pi A' B') |<br/>
+&nbsp;&nbsp;<a name="lab_par_red1_app"></a>lab_par_red1_app : forall n : nat, forall B B' : lab_term (S n), forall M M' N N' : lab_term n, lab_par_red1 _ B B' -&gt; lab_par_red1 _ M M' -&gt; lab_par_red1 _ N N' -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;lab_par_red1 _ (lab_app B M N) (lab_app B' M' N') |<br/>
+&nbsp;&nbsp;<a name="lab_par_red1_beta"></a>lab_par_red1_beta : forall n : nat, forall A N N' : lab_term n, forall B M M' : lab_term (S n), lab_par_red1 _ M M' -&gt; lab_par_red1 _ N N' -&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;lab_par_red1 _ (lab_app B (lab_lda A M) N) (lab_subbot M' N').<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments lab_par_red1 [n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="lab_par_red1_ref"></a>lab_par_red1_ref : forall (n : nat) (M : lab_term n), lab_par_red1 M M.<br/>
+&nbsp;&nbsp;induction M.<br/>
+&nbsp;&nbsp;apply lab_par_red1_var.<br/>
+&nbsp;&nbsp;apply lab_par_red1_srt.<br/>
+&nbsp;&nbsp;apply lab_par_red1_lda; assumption.<br/>
+&nbsp;&nbsp;apply lab_par_red1_pi; assumption.<br/>
+&nbsp;&nbsp;apply lab_par_red1_app; assumption.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="unlab_par_red1"></a>unlab_par_red1 : forall (n : nat) (M N : lab_term n), lab_par_red1 M N -&gt; par_red1 (unlab M) (unlab N).<br/>
+&nbsp;&nbsp;induction 1; simpl.<br/>
+&nbsp;&nbsp;apply par_red1_var.<br/>
+&nbsp;&nbsp;apply par_red1_srt.<br/>
+&nbsp;&nbsp;apply par_red1_lda; assumption.<br/>
+&nbsp;&nbsp;apply par_red1_pi; assumption.<br/>
+&nbsp;&nbsp;apply par_red1_app; assumption.<br/>
+&nbsp;&nbsp;rewrite unlab_subbot.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply par_red1_beta; assumption.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="pre_unlab_par_red1'"></a>pre_unlab_par_red1' : forall (n : nat) (M N : term n), par_red1 M N -&gt;<br/>
+&nbsp;&nbsp;forall Ml : lab_term n, unlab Ml = M -&gt;<br/>
+&nbsp;&nbsp;exists Nl : lab_term n, lab_par_red1 Ml Nl /\ unlab Nl = N.<br/>
+&nbsp;&nbsp;induction 1; intros Pl H1.<br/>
+&nbsp;&nbsp;split with (lab_var x).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite unlab_var with n x Pl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply lab_par_red1_var.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;split with (lab_srt (n:=n) s).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite unlab_srt with n s Pl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply lab_par_red1_srt.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;elim unlab_app with n Pl M N.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros Bl H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;clear H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros Ml H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;clear H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros Nl H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim IHpar_red1_1 with Ml.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros M'l H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim IHpar_red1_2 with Nl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros N'l H7.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H7.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with (lab_app Bl M'l N'l).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply lab_par_red1_app; try assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply lab_par_red1_ref.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply app_wd; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;elim unlab_pi with n Pl A B.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros Al H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;clear H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros Bl H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim IHpar_red1_1 with Al.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros A'l H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim IHpar_red1_2 with Bl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros B'l H7.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H7.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with (lab_pi A'l B'l).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply lab_par_red1_pi; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply pi_wd; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;elim unlab_lda with n Pl A M.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros Al H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;clear H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros Ml H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim IHpar_red1_1 with Al.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros A'l H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim IHpar_red1_2 with Ml.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros M'l H7.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H7.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with (lab_lda A'l M'l).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply lab_par_red1_lda; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply lda_wd; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;elim unlab_app with n Pl (lda A M) N.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros Bl H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;clear H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros Ql H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;clear H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros Nl H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim unlab_lda with n Ql A M.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros Al H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clear H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros Ml H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H6.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim IHpar_red1_1 with Ml.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros M'l H8.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H8.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim IHpar_red1_2 with Nl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros N'l H10.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H10.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with (lab_subbot M'l N'l).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply lab_par_red1_beta; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite unlab_subbot.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite H9.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite H11.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="unlab_par_red1'"></a>unlab_par_red1' : forall (n : nat) (Ml : lab_term n) (N : term n), par_red1 (unlab Ml) N -&gt;<br/>
+&nbsp;&nbsp;exists Nl : lab_term n, lab_par_red1 Ml Nl /\ unlab Nl = N.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;apply pre_unlab_par_red1' with (unlab Ml); auto.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Inductive</code> <a name="lab_red"></a>lab_red : forall n : nat, lab_term n -&gt; lab_term n -&gt; Prop :=<br/>
+&nbsp;&nbsp;<a name="lab_red_par_red1"></a>lab_red_par_red1 : forall (n : nat) (M N : lab_term n), lab_par_red1 M N -&gt; lab_red _ M N |<br/>
+&nbsp;&nbsp;<a name="lab_red_trans"></a>lab_red_trans : forall (n : nat) (M N P : lab_term n), lab_red _ M N -&gt; lab_red _ N P -&gt; lab_red _ M P.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments lab_red [n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="unlab_red"></a>unlab_red : forall (n : nat) (M N : lab_term n), lab_red M N -&gt; red (unlab M) (unlab N).<br/>
+&nbsp;&nbsp;induction 1.<br/>
+&nbsp;&nbsp;apply red_par_red1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply unlab_par_red1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;apply red_trans with (unlab N); assumption.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="pre_unlab_red'"></a>pre_unlab_red' : forall (n : nat) (M N : term n), red M N -&gt;<br/>
+&nbsp;&nbsp;forall Ml : lab_term n, unlab Ml = M -&gt;<br/>
+&nbsp;&nbsp;exists Nl : lab_term n, lab_red Ml Nl /\ unlab Nl = N.<br/>
+&nbsp;&nbsp;induction 1; intros.<br/>
+&nbsp;&nbsp;elim pre_unlab_par_red1' with n M N Ml; try assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros Nl H1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct H1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split with Nl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply lab_red_par_red1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;elim IHred1 with Ml.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros Nl H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;elim IHred2 with Nl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros Pl H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with Pl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply lab_red_trans with Nl; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="unlab_red'"></a>unlab_red' : forall (n : nat) (Ml : lab_term n) (N : term n), red (unlab Ml) N -&gt;<br/>
+&nbsp;&nbsp;exists Nl : lab_term n, lab_red Ml Nl /\ unlab Nl = N.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;apply pre_unlab_red' with (unlab Ml); auto.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Inductive</code> <a name="lab_conv"></a>lab_conv : forall n : nat, lab_term n -&gt; lab_term n -&gt; Prop :=<br/>
+&nbsp;&nbsp;<a name="lab_conv_par_red1"></a>lab_conv_par_red1 : forall (n : nat) (M N : lab_term n), lab_par_red1 M N -&gt; lab_conv _ M N |<br/>
+&nbsp;&nbsp;<a name="lab_conv_sym"></a>lab_conv_sym : forall (n : nat) (M N : lab_term n), lab_conv _ M N -&gt; lab_conv _ N M |<br/>
+&nbsp;&nbsp;<a name="lab_conv_trans"></a>lab_conv_trans : forall (n : nat) (M N P : lab_term n), lab_conv _ M N -&gt; lab_conv _ N P -&gt; lab_conv _ M P.<br/>
+
+<br/>
+<code class="keyword">Implicit</code> Arguments lab_conv [n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="unlab_conv"></a>unlab_conv : forall (n : nat) (M N : lab_term n), lab_conv M N -&gt; conv (unlab M) (unlab N).<br/>
+&nbsp;&nbsp;induction 1.<br/>
+&nbsp;&nbsp;apply conv_par_red1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply unlab_par_red1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;apply conv_sym.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;apply conv_trans with (unlab N); assumption.<br/>
+<code class="keyword">Save</code>.<br/>
+</code>
+<hr/><a href="index.html">Index</a><hr/><font size="-1">This page has been generated by <a href="http://www.lri.fr/~filliatr/coqdoc/">coqdoc</a></font>
+</body>
+</html>

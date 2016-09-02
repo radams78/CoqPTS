@@ -1,0 +1,489 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset="><link rel="stylesheet" href="style.css" type="text/css"><title>CR</title>
+</head>
+
+<body>
+
+<h1>Library CR</h1>
+
+<code>
+<code class="keyword">Require</code> <code class="keyword">Export</code> <a href="Conv.html">Conv</a>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="par_red1_dmnd"></a>par_red1_dmnd : forall n : nat, forall M N : term n, M |&gt; N -&gt;<br/>
+&nbsp;&nbsp;forall P, M |&gt; P -&gt; exists Q, N |&gt; Q /\ P |&gt; Q.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction 1; intros.<br/>
+split with (var x).<br/>
+&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;apply par_red1_var.<br/>
+&nbsp;&nbsp;&nbsp;replace P with (var x).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply par_red1_var.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;symmetry.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Gen_par_red1_var.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+split with (srt (n:=n) s).<br/>
+&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;apply par_red1_srt.<br/>
+&nbsp;&nbsp;&nbsp;replace P with (srt (n:=n) s).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply par_red1_srt.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;symmetry.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Gen_par_red1_srt.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+elim Gen_par_red1_app with n M N P; auto.<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;rename x into M''.<br/>
+&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;rename x into N''.<br/>
+&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;elim IHpar_red1_1 with M''; auto.<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;rename x into M0.<br/>
+&nbsp;&nbsp;elim IHpar_red1_2 with N''; auto.<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;rename x into N0.<br/>
+&nbsp;&nbsp;split with (app M0 N0).<br/>
+&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;apply par_red1_app; assumption.<br/>
+&nbsp;&nbsp;&nbsp;rewrite H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply par_red1_app; assumption.<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;rename x into A.<br/>
+&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;rename x into N''.<br/>
+&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;rename x into R.<br/>
+&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;rename x into R''.<br/>
+&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;destruct H4.<br/>
+&nbsp;&nbsp;elim IHpar_red1_1 with (lda A R'').<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;rename x into M0.<br/>
+&nbsp;&nbsp;elim Gen_par_red1_lda with n A M0 R''; auto.<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;rename x into A0.<br/>
+&nbsp;&nbsp;rename x0 into R0.<br/>
+&nbsp;&nbsp;destruct H8.<br/>
+&nbsp;&nbsp;destruct H9.<br/>
+&nbsp;&nbsp;elim Gen_par_red1_lda with n A M' R; auto.<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;rename x into A'.<br/>
+&nbsp;&nbsp;rename x0 into R'.<br/>
+&nbsp;&nbsp;destruct H11.<br/>
+&nbsp;&nbsp;destruct H12.<br/>
+&nbsp;&nbsp;elim Gen_par_red1_lda with n A' M0 R'; auto.<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;destruct H14.<br/>
+&nbsp;&nbsp;destruct H15.<br/>
+&nbsp;&nbsp;rewrite H10 in H16.<br/>
+&nbsp;&nbsp;replace x with A0 in H14.<br/>
+&nbsp;&nbsp;replace x0 with R0 in H15.<br/>
+&nbsp;&nbsp;clear x x0 H16.<br/>
+&nbsp;&nbsp;elim IHpar_red1_2 with N''; auto.<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;rename x into N0.<br/>
+&nbsp;&nbsp;split with (subbot R0 N0).<br/>
+&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;rewrite H13.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply par_red1_beta; assumption.<br/>
+&nbsp;&nbsp;&nbsp;rewrite H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply par_red1_subbot; assumption.<br/>
+&nbsp;&nbsp;apply lda_injr with A0 x.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;apply lda_injl with R0 x0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;rewrite &lt;- H13.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;rewrite &lt;- H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;rewrite H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply par_red1_lda; auto.<br/>
+elim Gen_par_red1_pi with n A P B; auto.<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;rename x into A''.<br/>
+&nbsp;&nbsp;rename x0 into B''.<br/>
+&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;elim IHpar_red1_1 with A''; auto.<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;rename x into A0.<br/>
+&nbsp;&nbsp;elim IHpar_red1_2 with B''; auto.<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;rename x into B0.<br/>
+&nbsp;&nbsp;split with (pi A0 B0).<br/>
+&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;apply par_red1_pi; assumption.<br/>
+&nbsp;&nbsp;&nbsp;rewrite H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply par_red1_pi; assumption.<br/>
+elim Gen_par_red1_lda with n A P M; auto.<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;rename x into A''.<br/>
+&nbsp;&nbsp;rename x0 into M''.<br/>
+&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;elim IHpar_red1_1 with A''; auto.<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;rename x into A0.<br/>
+&nbsp;&nbsp;elim IHpar_red1_2 with M''; auto.<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;rename x into M0.<br/>
+&nbsp;&nbsp;split with (lda A0 M0).<br/>
+&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;apply par_red1_lda; assumption.<br/>
+&nbsp;&nbsp;&nbsp;rewrite H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply par_red1_lda; assumption.<br/>
+elim Gen_par_red1_app with n (lda A M) N P; auto.<br/>
+&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;rename x into P''.<br/>
+&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;rename x into N''.<br/>
+&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;elim Gen_par_red1_lda with n A P'' M; auto.<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;rename x into A''.<br/>
+&nbsp;&nbsp;&nbsp;rename x0 into M''.<br/>
+&nbsp;&nbsp;&nbsp;destruct H5.<br/>
+&nbsp;&nbsp;&nbsp;destruct H6.<br/>
+&nbsp;&nbsp;&nbsp;elim IHpar_red1_1 with M''; auto.<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;rename x into M0.<br/>
+&nbsp;&nbsp;&nbsp;elim IHpar_red1_2 with N''; auto.<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;rename x into N0.<br/>
+&nbsp;&nbsp;&nbsp;split with (subbot M0 N0).<br/>
+&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply par_red1_subbot; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite H7.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply par_red1_beta; assumption.<br/>
+&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;rename x0 into N''.<br/>
+&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;rename x1 into M''.<br/>
+&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;destruct H4.<br/>
+&nbsp;&nbsp;&nbsp;replace x0 with M in H4.<br/>
+&nbsp;&nbsp;&nbsp;clear x x0 H2.<br/>
+&nbsp;&nbsp;&nbsp;elim IHpar_red1_1 with M''; auto.<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;rename x into M0.<br/>
+&nbsp;&nbsp;&nbsp;elim IHpar_red1_2 with N''; auto.<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;rename x into N0.<br/>
+&nbsp;&nbsp;&nbsp;split with (subbot M0 N0).<br/>
+&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply par_red1_subbot; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply par_red1_subbot; assumption.<br/>
+&nbsp;&nbsp;&nbsp;apply lda_injr with A x.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="red_par_red1_comm"></a>red_par_red1_comm : forall (n : nat) (M N : term n), M -&gt;&gt; N -&gt;<br/>
+&nbsp;&nbsp;forall P : term n, M |&gt; P -&gt;<br/>
+&nbsp;&nbsp;exists Q : term n, N |&gt; Q /\ P -&gt;&gt; Q.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction 1; intros.<br/>
+&nbsp;elim par_red1_dmnd with n M N P; auto.<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;rename x into Q.<br/>
+&nbsp;&nbsp;&nbsp;split with Q.<br/>
+&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply red_par_red1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;elim IHred1 with P0; auto.<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;rename x into N0.<br/>
+&nbsp;&nbsp;&nbsp;elim IHred2 with N0; auto.<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;rename x into Q.<br/>
+&nbsp;&nbsp;&nbsp;split with Q.<br/>
+&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply red_trans with N0; assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="red_dmnd"></a>red_dmnd : forall (n : nat) (M N : term n), M -&gt;&gt; N -&gt;<br/>
+&nbsp;&nbsp;forall P, M -&gt;&gt; P -&gt;<br/>
+&nbsp;&nbsp;exists Q, N -&gt;&gt; Q /\ P -&gt;&gt; Q.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction 1; intros.<br/>
+&nbsp;elim red_par_red1_comm with n M P N; auto.<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;rename x into Q.<br/>
+&nbsp;&nbsp;&nbsp;split with Q.<br/>
+&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply red_par_red1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;elim IHred1 with P0; auto.<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;rename x into N0.<br/>
+&nbsp;&nbsp;&nbsp;elim IHred2 with N0; auto.<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;rename x into Q.<br/>
+&nbsp;&nbsp;&nbsp;split with Q.<br/>
+&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply red_trans with N0; assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="Church_Rosser"></a>Church_Rosser : forall (n : nat) (M N : term n),<br/>
+&nbsp;&nbsp;M ~= N -&gt; exists P, M -&gt;&gt; P /\ N -&gt;&gt; P.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction 1.<br/>
+&nbsp;split with N.<br/>
+&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply red_par_red1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply red_ref.<br/>
+&nbsp;destruct IHconv.<br/>
+&nbsp;&nbsp;&nbsp;rename x into P.<br/>
+&nbsp;&nbsp;&nbsp;destruct H0.<br/>
+&nbsp;&nbsp;&nbsp;split with P.<br/>
+&nbsp;&nbsp;&nbsp;auto.<br/>
+&nbsp;destruct IHconv1.<br/>
+&nbsp;&nbsp;&nbsp;rename x into Q.<br/>
+&nbsp;&nbsp;&nbsp;destruct H1.<br/>
+&nbsp;&nbsp;&nbsp;destruct IHconv2.<br/>
+&nbsp;&nbsp;&nbsp;rename x into Q'.<br/>
+&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;elim red_dmnd with n N Q Q'; auto.<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;rename x into R.<br/>
+&nbsp;&nbsp;&nbsp;split with R.<br/>
+&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply red_trans with Q; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply red_trans with Q'; assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Gen_conv_var"></a>Gen_conv_var : forall (n : nat) (M : term n) (x : fin n),<br/>
+&nbsp;&nbsp;M ~= x -&gt; M -&gt;&gt; x.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+elim Church_Rosser with n M (var x); auto.<br/>
+destruct 1.<br/>
+rename x0 into N.<br/>
+replace (var x) with N.<br/>
+&nbsp;assumption.<br/>
+&nbsp;apply Gen_red_var.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Gen_conv_srt"></a>Gen_conv_srt : forall (n : nat) (M : term n) (s : sort),<br/>
+&nbsp;&nbsp;M ~= srt s -&gt; M -&gt;&gt; srt s.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+elim Church_Rosser with n M (srt (n:=n) s); auto.<br/>
+destruct 1.<br/>
+rename x into N.<br/>
+replace (srt (n:=n) s) with N.<br/>
+assumption.<br/>
+apply Gen_red_srt.<br/>
+assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Gen_conv_pi"></a>Gen_conv_pi : forall (n : nat) (A : term n) (B : term (S n)) (P : term n),<br/>
+&nbsp;&nbsp;pi A B ~= P -&gt; exists A', exists B', A -&gt;&gt; A' /\ B -&gt;&gt; B' /\ P -&gt;&gt; pi A' B'.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+elim Church_Rosser with n (pi A B) P; auto.<br/>
+destruct 1.<br/>
+rename x into Q.<br/>
+elim Gen_red_pi with n A B Q; auto.<br/>
+destruct 1.<br/>
+rename x into A'.<br/>
+rename x0 into B'.<br/>
+destruct H2.<br/>
+destruct H3.<br/>
+split with A'.<br/>
+split with B'.<br/>
+split.<br/>
+&nbsp;assumption.<br/>
+split.<br/>
+&nbsp;assumption.<br/>
+&nbsp;rewrite &lt;- H2.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Gen_conv_lda"></a>Gen_conv_lda : forall (n : nat) (A : term n) (B : term (S n)) (P : term n),<br/>
+&nbsp;&nbsp;lda A B ~= P -&gt; exists A', exists B', A -&gt;&gt; A' /\ B -&gt;&gt; B' /\ P -&gt;&gt; lda A' B'.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+elim Church_Rosser with n (lda A B) P; auto.<br/>
+destruct 1.<br/>
+rename x into Q.<br/>
+elim Gen_red_lda with n A B Q; auto.<br/>
+destruct 1.<br/>
+rename x into A'.<br/>
+rename x0 into B'.<br/>
+destruct H2.<br/>
+destruct H3.<br/>
+split with A'.<br/>
+split with B'.<br/>
+split.<br/>
+&nbsp;assumption.<br/>
+split.<br/>
+&nbsp;assumption.<br/>
+&nbsp;rewrite &lt;- H2.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="conv_var_inj"></a>conv_var_inj : forall (n : nat) (x y : fin n),<br/>
+&nbsp;&nbsp;x ~= y -&gt; x = y.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+apply red_var_inj.<br/>
+apply Gen_conv_var.<br/>
+assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="conv_srt_inj"></a>conv_srt_inj : forall (n : nat) (s t : sort),<br/>
+&nbsp;&nbsp;srt (n:=n) s ~= srt t -&gt; s = t.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+apply red_srt_inj with n.<br/>
+apply Gen_conv_srt.<br/>
+assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="conv_pi_injl"></a>conv_pi_injl : forall (n : nat) (A A' : term n) (B B' : term (S n)),<br/>
+&nbsp;&nbsp;pi A B ~= pi A' B' -&gt; A ~= A'.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+elim Gen_conv_pi with n A B (pi A' B'); auto.<br/>
+destruct 1.<br/>
+rename x into A0.<br/>
+rename x0 into B0.<br/>
+destruct H0.<br/>
+destruct H1.<br/>
+apply conv_trans with A0.<br/>
+&nbsp;apply conv_red.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;apply conv_sym.<br/>
+&nbsp;&nbsp;&nbsp;apply conv_red.<br/>
+&nbsp;&nbsp;&nbsp;apply red_pi_injl with B' B0.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="conv_pi_injr"></a>conv_pi_injr : forall (n : nat) (A A' : term n) (B B' : term (S n)),<br/>
+&nbsp;&nbsp;pi A B ~= pi A' B' -&gt; B ~= B'.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+elim Gen_conv_pi with n A B (pi A' B'); auto.<br/>
+destruct 1.<br/>
+rename x into A0.<br/>
+rename x0 into B0.<br/>
+destruct H0.<br/>
+destruct H1.<br/>
+apply conv_trans with B0.<br/>
+&nbsp;apply conv_red.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;apply conv_sym.<br/>
+&nbsp;&nbsp;&nbsp;apply conv_red.<br/>
+&nbsp;&nbsp;&nbsp;apply red_pi_injr with A' A0.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="conv_lda_injl"></a>conv_lda_injl : forall (n : nat) (A A' : term n) (B B' : term (S n)),<br/>
+&nbsp;&nbsp;lda A B ~= lda A' B' -&gt; A ~= A'.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+elim Gen_conv_lda with n A B (lda A' B'); auto.<br/>
+destruct 1.<br/>
+rename x into A0.<br/>
+rename x0 into B0.<br/>
+destruct H0.<br/>
+destruct H1.<br/>
+apply conv_trans with A0.<br/>
+&nbsp;apply conv_red.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;apply conv_sym.<br/>
+&nbsp;&nbsp;&nbsp;apply conv_red.<br/>
+&nbsp;&nbsp;&nbsp;apply red_lda_injl with B' B0.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="conv_lda_injr"></a>conv_lda_injr : forall (n : nat) (A A' : term n) (B B' : term (S n)),<br/>
+&nbsp;&nbsp;lda A B ~= lda A' B' -&gt; B ~= B'.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+elim Gen_conv_lda with n A B (lda A' B'); auto.<br/>
+destruct 1.<br/>
+rename x into A0.<br/>
+rename x0 into B0.<br/>
+destruct H0.<br/>
+destruct H1.<br/>
+apply conv_trans with B0.<br/>
+&nbsp;apply conv_red.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;apply conv_sym.<br/>
+&nbsp;&nbsp;&nbsp;apply conv_red.<br/>
+&nbsp;&nbsp;&nbsp;apply red_lda_injr with A' A0.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="conv_subvar_inj"></a>conv_subvar_inj : forall (m n : nat) (M N : term m) (rho : fin m -&gt; fin n),<br/>
+&nbsp;&nbsp;injective rho -&gt; subvar M rho ~= subvar N rho -&gt; M ~= N.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+elim Church_Rosser with n (subvar M rho) (subvar N rho); auto.<br/>
+destruct 1.<br/>
+rename x into P.<br/>
+elim red_subvar_inv with m n M rho P; auto.<br/>
+destruct 1.<br/>
+rename x into M0.<br/>
+rewrite H4 in H2.<br/>
+apply conv_trans with M0.<br/>
+&nbsp;apply conv_red.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;apply conv_sym.<br/>
+&nbsp;&nbsp;&nbsp;apply conv_red.<br/>
+&nbsp;&nbsp;&nbsp;apply red_subvar_inj with n rho; assumption.<br/>
+<code class="keyword">Qed</code>.    <br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="conv_liftterm_inj"></a>conv_liftterm_inj : forall n (M N : term n), liftterm M ~= liftterm N -&gt; M ~= N.<br/>
+unfold liftterm.<br/>
+intros n M N.<br/>
+apply conv_subvar_inj.<br/>
+exact (up_inj n).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="not_conv_pi_srt"></a>not_conv_pi_srt : forall (n : nat) (A : term n) (B : term (S n)) (s : sort),<br/>
+&nbsp;&nbsp;~(pi A B ~= srt s).<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+intro.<br/>
+elim not_red_pi_srt with n A B s.<br/>
+apply Gen_conv_srt.<br/>
+assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+</code>
+<hr/><a href="index.html">Index</a><hr/><font size="-1">This page has been generated by <a href="http://www.lri.fr/~filliatr/coqdoc/">coqdoc</a></font>
+</body>
+</html>

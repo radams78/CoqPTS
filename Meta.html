@@ -1,0 +1,652 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset="><link rel="stylesheet" href="style.css" type="text/css"><title>Meta</title>
+</head>
+
+<body>
+
+<h1>Library Meta</h1>
+
+<code>
+<code class="keyword">Require</code> <code class="keyword">Export</code> <a href="PTS.html">PTS</a>.<br/>
+<code class="keyword">Require</code> <code class="keyword">Import</code> <a href="CR.html">CR</a>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Context_Strength"></a>Context_Strength : forall (n : nat) (Gamma : context n) (A : term n),<br/>
+&nbsp;&nbsp;valid (n:=S n) (Gamma, A) -&gt; valid Gamma.<br/>
+<code class="keyword">Proof</code>.<br/>
+simpl.<br/>
+destruct 1.<br/>
+rename x into s.<br/>
+apply Context_Validity with A (srt (n:=n) s).<br/>
+assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="Weakening"></a>Weakening : forall (n : nat) (Delta : context n) (M A : term n),<br/>
+&nbsp;&nbsp;Delta |- M ; A -&gt;<br/>
+&nbsp;&nbsp;forall (m : nat) (Gamma : context m) (rho : fin n -&gt; fin m),<br/>
+&nbsp;&nbsp;valid Gamma -&gt;<br/>
+&nbsp;&nbsp;subctxt Delta Gamma rho -&gt;<br/>
+&nbsp;&nbsp;Gamma |- subvar M rho ; subvar A rho.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction 1; simpl; intros.<br/>
+apply Start_ax; assumption.<br/>
+replace (subvar (liftterm A) rho) with (typeof (rho bot) Gamma0).<br/>
+&nbsp;apply Start_var.<br/>
+&nbsp;&nbsp;&nbsp;assumption. <br/>
+&nbsp;apply H1 with (x:= bot (n:=n)).<br/>
+repeat rewrite subvar_liftterm.<br/>
+&nbsp;&nbsp;apply IHPTS1.<br/>
+&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;apply Strength_subctxt with C.<br/>
+&nbsp;&nbsp;assumption.<br/>
+assert (Gamma0 |- subvar A rho ; srt s1).<br/>
+&nbsp;&nbsp;&nbsp;apply IHPTS1 with (rho:= rho); assumption.<br/>
+&nbsp;&nbsp;apply product with s1 s2; auto.<br/>
+&nbsp;&nbsp;apply IHPTS2 with (rho:= Sfun rho).<br/>
+&nbsp;&nbsp;&nbsp;split with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;apply Weak_subctxt.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+rewrite subvar_subbot.<br/>
+&nbsp;&nbsp;apply application with (subvar A rho).<br/>
+&nbsp;&nbsp;&nbsp;apply IHPTS1 with (rho:= rho); assumption.<br/>
+&nbsp;&nbsp;&nbsp;apply IHPTS2; assumption.<br/>
+assert (Gamma0 |- subvar A rho ; srt s1).<br/>
+&nbsp;&nbsp;&nbsp;apply IHPTS2 with (rho:= rho); assumption.<br/>
+&nbsp;&nbsp;apply abstraction with s1 s2 s3; auto.<br/>
+&nbsp;&nbsp;&nbsp;apply IHPTS1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply Weak_subctxt.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;apply IHPTS3 with (rho:= Sfun rho).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply Weak_subctxt.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+apply conversion with (subvar B rho) s.<br/>
+&nbsp;apply conv_subvar.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;apply IHPTS1; assumption.<br/>
+&nbsp;apply IHPTS2 with (rho:= rho); assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="Substitution"></a>Substitution : forall n : nat, forall Delta : context n, forall M A : term n, <br/>
+&nbsp;&nbsp;Delta |- M ; A -&gt;<br/>
+&nbsp;&nbsp;forall m : nat, forall Gamma : context m, forall sigma : fin n -&gt; term m,<br/>
+&nbsp;&nbsp;valid Gamma -&gt; Gamma |= sigma ; Delta -&gt; Gamma |- subst M sigma ; subst A sigma.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction 1; simpl; intros.<br/>
+apply Start_ax; assumption.<br/>
+apply H1 with (x:= bot (n:=n)).<br/>
+repeat rewrite subst_liftterm.<br/>
+&nbsp;&nbsp;apply IHPTS1.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;apply Strength_satisfy with C.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+assert (Gamma0 |- subst A sigma ; srt s1).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply IHPTS1 with (sigma:= sigma); assumption.<br/>
+&nbsp;&nbsp;apply product with s1 s2; auto.<br/>
+&nbsp;&nbsp;apply IHPTS2 with (sigma:= liftsub sigma).<br/>
+&nbsp;&nbsp;&nbsp;split with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;unfold satisfy.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct x; simpl; rewrite &lt;- liftterm_subst' with (sigma:= sigma).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply weakening with s1; auto.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply start with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+rewrite subst_subbot.<br/>
+&nbsp;&nbsp;apply application with (subst A sigma).<br/>
+&nbsp;&nbsp;&nbsp;apply IHPTS1 with (sigma:= sigma); assumption.<br/>
+&nbsp;&nbsp;&nbsp;apply IHPTS2; assumption.<br/>
+assert (Gamma0 |- subst A sigma ; srt s1).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply IHPTS2 with (sigma:= sigma); assumption.<br/>
+&nbsp;&nbsp;assert (((Gamma0, subst A sigma) : context (S m)) |= liftsub sigma ; (Gamma, A)).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;unfold satisfy.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct x; simpl; rewrite &lt;- liftterm_subst' with (sigma:= sigma).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply weakening with s1; auto.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply start with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.     <br/>
+&nbsp;&nbsp;apply abstraction with s1 s2 s3.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;apply IHPTS1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;apply IHPTS3 with (sigma:= liftsub sigma).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+apply conversion with (subst B sigma) s.<br/>
+&nbsp;apply conv_subst; auto.<br/>
+&nbsp;apply IHPTS1; assumption.<br/>
+&nbsp;apply IHPTS2 with (sigma:= sigma); assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Weak_satisfy"></a>Weak_satisfy : forall m n (Delta : context m) (Gamma : context n) (sigma : fin m -&gt; term n) (A : term m) (s : sort),<br/>
+&nbsp;&nbsp;Gamma |= sigma ; Delta -&gt; Delta |- A ; srt s -&gt; valid Gamma -&gt;<br/>
+&nbsp;&nbsp;((Gamma, subst A sigma) : context (S n)) |= liftsub sigma ; (Delta, A).<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold satisfy at 2.<br/>
+intros.<br/>
+assert (Gamma |- subst A sigma ; srt s).<br/>
+&nbsp;&nbsp;apply Substitution with (Delta:= Delta) (sigma:= sigma) (A:= srt (n:=m) s); auto.<br/>
+destruct x; simpl.<br/>
+&nbsp;fold fin in f.<br/>
+&nbsp;&nbsp;&nbsp;rename f into x.<br/>
+&nbsp;&nbsp;&nbsp;rewrite &lt;- liftterm_subst'.<br/>
+&nbsp;&nbsp;&nbsp;apply weakening with s; auto.<br/>
+&nbsp;rewrite &lt;- liftterm_subst'.<br/>
+&nbsp;&nbsp;&nbsp;apply start with s.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Substitution_bot"></a>Substitution_bot : forall n (Gamma : context n) A N M B,<br/>
+&nbsp;&nbsp;Gamma |- N ; A -&gt; ((Gamma, A) : context (S n)) |- M ; B -&gt;<br/>
+&nbsp;&nbsp;Gamma |- subbot M N ; subbot B N.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+unfold subbot.<br/>
+assert (valid Gamma).<br/>
+&nbsp;&nbsp;apply Context_Validity with N A.<br/>
+&nbsp;&nbsp;assumption.<br/>
+apply Substitution with (Gamma, A); auto.<br/>
+unfold satisfy.<br/>
+destruct x; simpl; rewrite subst_liftterm_botsub.<br/>
+&nbsp;apply Start_var.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+&nbsp;<br/>
+<code class="keyword">Lemma</code> <a name="pre_Gen_srt"></a>pre_Gen_srt : forall n (Gamma : context n) M C,<br/>
+&nbsp;&nbsp;Gamma |- M ; C -&gt; forall s, M = srt s -&gt; exists t : sort, C -&gt;&gt; srt t /\ axiom s t.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction 1; try discriminate 1.<br/>
+injection 1.<br/>
+&nbsp;&nbsp;split with t.<br/>
+&nbsp;&nbsp;rewrite &lt;- H1.<br/>
+&nbsp;&nbsp;split; auto.<br/>
+intros.<br/>
+&nbsp;&nbsp;elim IHPTS1 with s0.<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into t.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with t.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply red_liftterm with (N:= srt (n:=n) t).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;apply liftterm_inj.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+intuition.<br/>
+intros.<br/>
+&nbsp;&nbsp;elim IHPTS1 with s0.<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with x.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Gen_conv_srt.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_trans with B.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_sym.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_red.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="Gen_srt"></a>Gen_srt : forall n (Gamma : context n) c C,<br/>
+&nbsp;&nbsp;Gamma |- srt c ; C -&gt; exists t, C -&gt;&gt; srt t /\ axiom c t.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;apply pre_Gen_srt with Gamma (srt (n:= n) c); auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Gen_srt'"></a>Gen_srt' : forall n (Gamma : context n) c s,<br/>
+&nbsp;&nbsp;Gamma |- srt c ; srt s -&gt; axiom c s.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;elim Gen_srt with n Gamma c (srt (n:=n) s).<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite srt_inj with n s x.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;symmetry.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Gen_red_srt.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="pre_Gen_var"></a>pre_Gen_var : forall (n : nat) (Gamma : context n) (M C : term n),<br/>
+&nbsp;&nbsp;Gamma |- M ; C -&gt; forall x : fin n, M = x -&gt; typeof x Gamma ~= C.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction 1; try discriminate 1; intros.<br/>
+&nbsp;&nbsp;replace x with (bot (n:= n)).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_ref.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply var_inj.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;elim liftterm_var with n A x.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_liftterm.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;apply conv_trans with B; auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="Gen_var"></a>Gen_var : forall (n : nat) (Gamma : context n) (x : fin n) (C : term n),<br/>
+&nbsp;&nbsp;Gamma |- x ; C -&gt; typeof x Gamma ~= C.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;apply pre_Gen_var with (var x); auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="pre_Gen_pi"></a>pre_Gen_pi : forall n (Gamma : context n) M C ,<br/>
+&nbsp;&nbsp;Gamma |- M ; C -&gt; forall A B, M = pi A B -&gt;<br/>
+&nbsp;&nbsp;exists s1, exists s2, exists s3, rule s1 s2 s3 /\<br/>
+&nbsp;&nbsp;Gamma |- A ; srt s1 /\ ((Gamma, A) : context (S n)) |- B ; srt s2 /\ C -&gt;&gt; srt s3.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;induction 1; try discriminate 1; intros.<br/>
+&nbsp;&nbsp;elim liftterm_pi with n A A0 B0.<br/>
+&nbsp;&nbsp;&nbsp;intro A1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into B1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim IHPTS1 with A1 B1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into s2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into s3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H6.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H7.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assert (((Gamma,C) : context (S n)) |- A0 ; srt s1).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply weakening with (B:= srt (n:=n) s1) (s:=s); assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Weakening with (n:=S n) (Delta:= (Gamma, A1)) (A:= srt (n:=S n) s2) (rho:= Sfun (up (n:= n))).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unfold subctxt.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct x; simpl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply liftterm_liftterm'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply liftterm_liftterm'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply red_liftterm with (N:= srt (n:=n) s3).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;split with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split with s2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;split with s3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- pi_injl with n A A0 B B0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- pi_injr with n A A0 B B0; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply red_ref.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;elim IHPTS1 with A0 B0.<br/>
+&nbsp;&nbsp;&nbsp;intro s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into s2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into s3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Gen_conv_srt.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_trans with B.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_sym.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_red.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="Gen_pi"></a>Gen_pi : forall n (Gamma : context n) A B C,<br/>
+&nbsp;&nbsp;Gamma |- pi A B ; C -&gt; exists s1, exists s2, exists s3,<br/>
+&nbsp;&nbsp;rule s1 s2 s3 /\ Gamma |- A ; srt s1 /\ ((Gamma, A) : context (S n)) |- B ; srt s2 /\ C -&gt;&gt; srt s3.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;apply pre_Gen_pi with (pi A B); auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Gen_pi'"></a>Gen_pi' : forall n (Gamma : context n) A B s3,<br/>
+&nbsp;&nbsp;Gamma |- pi A B ; srt s3 -&gt; exists s1, exists s2,<br/>
+&nbsp;&nbsp;rule s1 s2 s3 /\ Gamma |- A ; srt s1 /\ ((Gamma, A) : context (S n)) |- B ; srt s2.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;elim Gen_pi with n Gamma A B (srt (n:=n) s3).<br/>
+&nbsp;&nbsp;&nbsp;intro s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into s2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into s3'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite red_srt_inj with n s3 s3'; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split; assumption.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="pre_Gen_lda"></a>pre_Gen_lda : forall n (Gamma : context n) M C,<br/>
+&nbsp;&nbsp;Gamma |- M ; C -&gt;<br/>
+&nbsp;&nbsp;forall A N, M = lda A N -&gt;<br/>
+&nbsp;&nbsp;exists B, exists s,<br/>
+&nbsp;&nbsp;Gamma |- pi A B ; srt s /\ ((Gamma, A) : context (S n)) |- N ; B /\ C ~= pi A B.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;induction 1; try discriminate 1; intros.<br/>
+&nbsp;&nbsp;&nbsp;elim liftterm_lda with n A A0 N.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intro A0'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into N'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim IHPTS1 with A0' N'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro B0'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into t.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H6.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with (subvar B0' (Sfun (up (n:=n)))).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with t.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply weakening with (A:= pi A0' B0') (B:= srt (n:= n) t) (s:= s); assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Weakening with (n:= S n) (Delta:= (Gamma, A0')).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Weak_valid with (n:=n) (Gamma:=Gamma) (s:=s).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Context_Validity with N' B0'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unfold subctxt.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct x; simpl; apply liftterm_liftterm'.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_liftterm with (n:= n) (M:= B) (N:= pi A0' B0').<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;split with B.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- lda_injl with n A A0 b N.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply product with s1 s2; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- lda_injr with n A A0 b  N; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_ref.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;elim IHPTS1 with A0 N.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intro B0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into t.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with B0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with t.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_trans with B.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_sym.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="Gen_lda"></a>Gen_lda : forall n (Gamma : context n) A M C,<br/>
+&nbsp;&nbsp;Gamma |- lda A M ; C -&gt;<br/>
+&nbsp;&nbsp;exists B, exists s,<br/>
+&nbsp;&nbsp;Gamma |- pi A B ; srt s /\ ((Gamma, A) : context (S n)) |- M ; B /\ C ~= pi A B.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;apply pre_Gen_lda with (lda A M); auto.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Gen_lda'"></a>Gen_lda' : forall n (Gamma : context n) A M C,<br/>
+&nbsp;&nbsp;Gamma |- lda A M ; C -&gt;<br/>
+&nbsp;&nbsp;exists B, exists s1, exists s2, exists s3,<br/>
+&nbsp;&nbsp;rule s1 s2 s3 /\ Gamma |- A ; srt s1 /\ ((Gamma, A) : context (S n)) |- B ; srt s2 /\<br/>
+&nbsp;&nbsp;((Gamma, A) : context (S n)) |- M ; B /\ C ~= pi A B.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;elim Gen_lda with n Gamma A M C.<br/>
+&nbsp;&nbsp;&nbsp;intro B.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into s3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with B.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim Gen_pi' with n Gamma A B s3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into s2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;auto.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="pre_Gen_app"></a>pre_Gen_app : forall n (Gamma : context n) M C,<br/>
+&nbsp;&nbsp;Gamma |- M ; C -&gt;<br/>
+&nbsp;&nbsp;forall N P, M = app N P -&gt;<br/>
+&nbsp;&nbsp;exists A, exists B,<br/>
+&nbsp;&nbsp;Gamma |- N ; pi A B /\ Gamma |- P ; A /\ C ~= subbot B P.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;induction 1; try discriminate 1; intros.<br/>
+&nbsp;&nbsp;&nbsp;elim liftterm_app with n A N P.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intro N0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into P0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim IHPTS1 with N0 P0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro A0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into B0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H5.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H6.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with (liftterm A0).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with (subvar B0 (Sfun (up (n:=n)))).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply weakening with (B:= pi A0 B0) (s:= s); assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply weakening with s; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- liftterm_subbot.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_liftterm.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;split with A.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with B.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- app_injl with n F N a P; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite &lt;- app_injr with n F N a P; auto.<br/>
+&nbsp;&nbsp;&nbsp;elim IHPTS1 with N P.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intro A0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into B0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H4.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with A0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with B0.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_trans with B.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_sym.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="Gen_app"></a>Gen_app : forall n (Gamma : context n) M N C,<br/>
+&nbsp;&nbsp;Gamma |- app M N ; C -&gt;<br/>
+&nbsp;&nbsp;exists A, exists B,<br/>
+&nbsp;&nbsp;Gamma |- M ; pi A B /\ Gamma |- N ; A /\ C ~= subbot B N.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;apply pre_Gen_app with (app M N); auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="Type_Validity"></a>Type_Validity : forall n (Gamma : context n) M A,<br/>
+&nbsp;&nbsp;Gamma |- M ; A -&gt;<br/>
+&nbsp;&nbsp;(exists s, A = srt s) \/<br/>
+&nbsp;&nbsp;(exists s, Gamma |- A ;srt s).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;induction 1.<br/>
+&nbsp;&nbsp;&nbsp;left.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with t.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;&nbsp;right.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply weakening with (B:= srt (n:=n) s) (s:=s); assumption.<br/>
+&nbsp;&nbsp;&nbsp;destruct IHPTS1; destruct H1; rename x into t.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;left.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with t.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rewrite H1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;right.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with t.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply weakening with (B:= srt (n:=n) t) (s:=s); assumption.<br/>
+&nbsp;&nbsp;&nbsp;left.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;&nbsp;&nbsp;destruct IHPTS1; destruct H1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;discriminate H1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rename x into s3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elim Gen_pi' with n Gamma A B s3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intro s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into s2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct H3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;right.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Substitution_bot with (B:= srt (n:=S n) s2) (N:= a) (A:= A); assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;right.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s3.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply product with s1 s2; assumption.<br/>
+&nbsp;&nbsp;&nbsp;right.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="Context_Conversion"></a>Context_Conversion : forall n (Gamma : context n) M A, Gamma |- M ; A -&gt;<br/>
+&nbsp;&nbsp;forall Delta, Gamma ~=c Delta -&gt; valid Delta -&gt;<br/>
+&nbsp;&nbsp;Delta |- M ; A.<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;&nbsp;induction 1; simpl.<br/>
+&nbsp;&nbsp;&nbsp;destruct Delta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros _ _.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply axioms.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;destruct Delta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename c into Delta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename t into B.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 2.     <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into t.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conversion with (liftterm B) s.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_sym.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exact (H0 bot).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply start with t.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply weakening with (B:= srt (n:=n) s) (s:= t).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply IHPTS.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_ctxt_injl with A B.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Context_Validity with B (srt (n:=n) t); assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;destruct Delta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename c into Delta.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename t into D.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;destruct 2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rename x into t.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply weakening with t.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply IHPTS1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_ctxt_injl with C D.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Context_Validity with D (srt (n:=n) t); assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply product with s1 s2; auto.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply IHPTS2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_ctxt_build; auto.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply IHPTS1; assumption.<br/>
+&nbsp;&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply application with A.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply IHPTS1; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply IHPTS2; assumption.<br/>
+&nbsp;&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assert (((Gamma, A) : context (S n)) ~=c (Delta, A)).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conv_ctxt_build; auto.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assert (Delta |- A ; srt s1).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply IHPTS2; assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assert (valid (n:=S n) (Delta, A)).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split with s1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply abstraction with s1 s2 s3; auto.<br/>
+&nbsp;&nbsp;&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply conversion with B s; auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+</code>
+<hr/><a href="index.html">Index</a><hr/><font size="-1">This page has been generated by <a href="http://www.lri.fr/~filliatr/coqdoc/">coqdoc</a></font>
+</body>
+</html>

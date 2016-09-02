@@ -1,0 +1,384 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset="><link rel="stylesheet" href="style.css" type="text/css"><title>Subvar</title>
+</head>
+
+<body>
+
+<h1>Library Subvar</h1>
+
+<code>
+<code class="keyword">Require</code> <code class="keyword">Export</code> <a href="Terms.html">Terms</a>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="subvar"></a>subvar : forall m : nat, term m -&gt; forall n : nat, (fin m -&gt; fin n) -&gt; term n.<br/>
+induction 1.<br/>
+&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;exact (rho f).<br/>
+&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;exact (srt s).<br/>
+&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;exact (app (IHterm1 _ rho) (IHterm2 _ rho)).<br/>
+&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;exact (pi (IHterm1 _ rho) (IHterm2 _ (Sfun rho))).<br/>
+&nbsp;intros m rho.<br/>
+&nbsp;&nbsp;&nbsp;exact (lda (IHterm1 _ rho) (IHterm2 _ (Sfun rho))).<br/>
+<code class="keyword">Defined</code>.<br/>
+<code class="keyword">Implicit</code> Arguments subvar [m n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subvar_ext"></a>subvar_ext : forall m M n (rho sigma : fin m -&gt; fin n), rho =f sigma -&gt; subvar M rho = subvar M sigma.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction M; simpl; intros.<br/>
+&nbsp;apply var_wd.<br/>
+&nbsp;&nbsp;&nbsp;apply H.<br/>
+&nbsp;reflexivity.<br/>
+&nbsp;apply app_wd.<br/>
+&nbsp;&nbsp;apply IHM1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;apply IHM2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;apply pi_wd.<br/>
+&nbsp;&nbsp;apply IHM1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;apply IHM2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply Sfun_ext.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;apply lda_wd.<br/>
+&nbsp;&nbsp;apply IHM1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;apply IHM2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply Sfun_ext.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="subvar_lm"></a>subvar_lm : forall m M n p (rho : fin m -&gt; fin n) (sigma : fin n -&gt; fin p),<br/>
+&nbsp;&nbsp;subvar (subvar M rho) sigma = subvar M (sigma (O) rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+induction M; simpl; try reflexivity.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;apply app_wd.<br/>
+&nbsp;&nbsp;apply IHM1.<br/>
+&nbsp;&nbsp;apply IHM2.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;apply pi_wd.<br/>
+&nbsp;&nbsp;apply IHM1.<br/>
+&nbsp;&nbsp;rewrite IHM2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply subvar_ext.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply funceq_sym.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply Sfun_comp.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;apply lda_wd.<br/>
+&nbsp;&nbsp;apply IHM1.<br/>
+&nbsp;&nbsp;rewrite IHM2.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply subvar_ext.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply funceq_sym.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply Sfun_comp.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="triv_subvar"></a>triv_subvar : forall n (M : term n), subvar M (id _) = M.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction M; simpl; try reflexivity.<br/>
+&nbsp;apply app_wd; assumption.<br/>
+&nbsp;apply pi_wd.<br/>
+&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;transitivity (subvar M2 (id _)).<br/>
+&nbsp;&nbsp;&nbsp;apply subvar_ext.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Sfun_id.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;apply lda_wd.<br/>
+&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;transitivity (subvar M2 (id _)).<br/>
+&nbsp;&nbsp;&nbsp;apply subvar_ext.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Sfun_id.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subvar_inj"></a>subvar_inj : forall m M N n (rho : fin m -&gt; fin n),<br/>
+&nbsp;&nbsp;injective rho -&gt; subvar M rho = subvar N rho -&gt; M = N.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction M; destruct N; try discriminate 2; simpl.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;apply var_wd.<br/>
+&nbsp;&nbsp;&nbsp;apply H.<br/>
+&nbsp;&nbsp;&nbsp;apply var_inj.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;apply srt_wd.<br/>
+&nbsp;&nbsp;&nbsp;apply srt_inj with n0.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;apply app_wd.<br/>
+&nbsp;&nbsp;apply IHM1 with n0 rho.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;eapply app_injl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply H0.<br/>
+&nbsp;&nbsp;apply IHM2 with n0 rho.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;eapply app_injr.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply H0.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;apply pi_wd.<br/>
+&nbsp;&nbsp;apply IHM1 with n0 rho.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;eapply pi_injl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply H0.<br/>
+&nbsp;&nbsp;apply IHM2 with (S n0) (Sfun rho).<br/>
+&nbsp;&nbsp;&nbsp;apply Sfun_inj.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;eapply pi_injr.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply H0.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;apply lda_wd.<br/>
+&nbsp;&nbsp;apply IHM1 with n0 rho.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;eapply lda_injl.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply H0.<br/>
+&nbsp;&nbsp;apply IHM2 with (S n0) (Sfun rho).<br/>
+&nbsp;&nbsp;&nbsp;apply Sfun_inj.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;eapply lda_injr.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply H0.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+&nbsp;&nbsp;<br/>
+<code class="keyword">Lemma</code> <a name="subvar_srt"></a>subvar_srt : forall m M n (rho : fin m -&gt; fin n) s,<br/>
+&nbsp;&nbsp;subvar M rho = srt s -&gt; M = srt s.<br/>
+<code class="keyword">Proof</code>.<br/>
+destruct M; try discriminate 1.<br/>
+intros.<br/>
+apply srt_wd.<br/>
+apply srt_inj with n0.<br/>
+assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subvar_var"></a>subvar_var : forall m M n (rho : fin m -&gt; fin n) (x : fin n),<br/>
+&nbsp;&nbsp;subvar M rho = x -&gt; exists y : fin m, M = y /\ x = rho y.<br/>
+<code class="keyword">Proof</code>.<br/>
+destruct M; try discriminate 1.<br/>
+intros.<br/>
+split with f.<br/>
+split.<br/>
+&nbsp;reflexivity.<br/>
+&nbsp;symmetry.<br/>
+&nbsp;&nbsp;&nbsp;apply var_inj.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subvar_pi"></a>subvar_pi : forall m M n (rho : fin m -&gt; fin n) A B,<br/>
+&nbsp;&nbsp;subvar M rho = pi A B -&gt; exists A', exists B', M = pi A' B' /\ subvar A' rho = A /\ subvar B' (Sfun rho) = B.<br/>
+<code class="keyword">Proof</code>.<br/>
+destruct M; try discriminate 1.<br/>
+intros.<br/>
+split with M1.<br/>
+split with M2.<br/>
+split.<br/>
+&nbsp;reflexivity.<br/>
+&nbsp;split.<br/>
+&nbsp;&nbsp;apply pi_injl with (subvar M2 (Sfun rho)) B.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;apply pi_injr with (subvar M1 rho) A.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subvar_lda"></a>subvar_lda : forall m M n (rho : fin m -&gt; fin n) A N,<br/>
+&nbsp;&nbsp;subvar M rho = lda A N -&gt; exists A', exists N', M = lda A' N' /\ subvar A' rho = A /\ subvar N' (Sfun rho) = N.<br/>
+<code class="keyword">Proof</code>.<br/>
+destruct M; try discriminate 1.<br/>
+intros.<br/>
+split with M1.<br/>
+split with M2.<br/>
+split.<br/>
+&nbsp;reflexivity.<br/>
+&nbsp;split.<br/>
+&nbsp;&nbsp;apply lda_injl with (subvar M2 (Sfun rho)) N.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;apply lda_injr with (subvar M1 rho) A.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subvar_app"></a>subvar_app : forall m M n (rho : fin m -&gt; fin n) N P,<br/>
+&nbsp;&nbsp;subvar M rho = app N P -&gt; exists N', exists P', M = app N' P' /\ subvar N' rho = N /\ subvar P' rho = P.<br/>
+<code class="keyword">Proof</code>.<br/>
+destruct M; try discriminate 1.<br/>
+intros.<br/>
+split with M1.<br/>
+split with M2.<br/>
+split.<br/>
+&nbsp;reflexivity.<br/>
+&nbsp;split.<br/>
+&nbsp;&nbsp;apply app_injl with (subvar M2 rho) P.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;apply app_injr with (subvar M1 rho) N.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="liftterm"></a>liftterm n (M : term n) : term (S n) := subvar M (up (n:=n)).<br/>
+<code class="keyword">Implicit</code> Arguments liftterm [n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftterm_srt"></a>liftterm_srt : forall n (M : term n) s,<br/>
+&nbsp;&nbsp;liftterm M = srt s -&gt; M = srt s.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros n M.<br/>
+exact (subvar_srt _ _ _ _).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftterm_var"></a>liftterm_var : forall n (M : term n) (x : fin (S n)),<br/>
+&nbsp;&nbsp;liftterm M = x -&gt; exists y : fin n, M = y /\ eq (A:= fin (S n)) x (up y).<br/>
+<code class="keyword">Proof</code>.<br/>
+intros n M.<br/>
+exact (subvar_var _ _ _ _).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftterm_pi"></a>liftterm_pi : forall n (M : term n) A B,<br/>
+&nbsp;&nbsp;liftterm M = pi A B -&gt; exists A', exists B', M = pi A' B' /\ liftterm A' = A /\ subvar B' (Sfun (up (n:= n))) = B.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros n M.<br/>
+exact (subvar_pi _ _ _ _).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftterm_lda"></a>liftterm_lda : forall n (M : term n) A N,<br/>
+&nbsp;&nbsp;liftterm M = lda A N -&gt; exists A', exists N', M = lda A' N' /\ liftterm A' = A /\ subvar N' (Sfun (up (n:= n))) = N.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros n M.<br/>
+exact (subvar_lda _ _ _ _).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftterm_app"></a>liftterm_app : forall n (M : term n) N P,<br/>
+&nbsp;&nbsp;liftterm M = app N P -&gt; exists N', exists P', M = app N' P' /\ liftterm N' = N /\ liftterm P' = P.<br/>
+<code class="keyword">Proof</code>.<br/>
+intros n M.<br/>
+exact (subvar_app _ _ _ _).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftterm_subvar"></a>liftterm_subvar : forall m n M (rho : fin m -&gt; fin n),<br/>
+&nbsp;&nbsp;liftterm (subvar M rho) = subvar M (up (n:=n) (O) rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+unfold liftterm.<br/>
+apply subvar_lm.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subvar_liftterm"></a>subvar_liftterm : forall m n M (rho : fin (S m) -&gt; fin n),<br/>
+&nbsp;&nbsp;subvar (liftterm M) rho = subvar M (rho (O) up (n:=m)).<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+unfold liftterm.<br/>
+apply subvar_lm.<br/>
+<code class="keyword">Save</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftterm_subvar'"></a>liftterm_subvar' : forall m n M (rho : fin m -&gt; fin n),<br/>
+&nbsp;&nbsp;liftterm (subvar M rho) = subvar (liftterm M) (Sfun rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+rewrite subvar_liftterm.<br/>
+apply liftterm_subvar with (rho:= rho).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftterm_liftterm"></a>liftterm_liftterm : forall n (M : term n), liftterm (liftterm M) = subvar M (up (n:=S n) (O) up (n:=n)).<br/>
+<code class="keyword">Proof</code>.<br/>
+intros.<br/>
+apply subvar_liftterm with (M:= M) (rho:= up (n:=S n)).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftterm_liftterm'"></a>liftterm_liftterm' : forall n (M : term n), liftterm (liftterm M) = subvar (liftterm M) (Sfun (up (n:=n))).<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold liftterm at 2.<br/>
+intros.<br/>
+apply liftterm_subvar' with (rho:= up (n:=n)).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftterm_inj"></a>liftterm_inj : forall n (M N : term n), liftterm M = liftterm N -&gt; M = N.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold liftterm.<br/>
+intros n M N.<br/>
+apply subvar_inj.<br/>
+exact (up_inj n).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="liftsub"></a>liftsub m n (rho : fin m -&gt; term n) := fun x : fin (S m) =&gt;<br/>
+&nbsp;&nbsp;match x return (term (S n)) with<br/>
+&nbsp;&nbsp;| None =&gt; bot<br/>
+&nbsp;&nbsp;| Some x0 =&gt; liftterm (rho x0)<br/>
+&nbsp;&nbsp;end.<br/>
+<code class="keyword">Implicit</code> Arguments liftsub [m n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftsub_ext"></a>liftsub_ext : forall m n (rho sigma : fin m -&gt; term n), rho =f sigma -&gt; liftsub rho =f liftsub sigma.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold funceq.<br/>
+destruct x; simpl.<br/>
+&nbsp;rewrite H.<br/>
+&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftsub_id"></a>liftsub_id : forall n, liftsub (n:=n) (id _) =f id _.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold funceq.<br/>
+destruct x; auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftsub_comp"></a>liftsub_comp : forall m n p (rho : fin m -&gt; fin n) (sigma : fin n -&gt; term p), liftsub (sigma (O) rho) =f (liftsub sigma (O) Sfun rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold funceq.<br/>
+destruct x; auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Sfun_is_liftsub"></a>Sfun_is_liftsub : forall m n (rho : fin m -&gt; fin n), (var (n:=S n) (O) Sfun rho) =f liftsub (var (n:=n) (O) rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold funceq.<br/>
+destruct x; auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="Comp"></a>Comp m n p (sigma : fin n -&gt; fin p) (rho : fin m -&gt; term n) := fun x =&gt; subvar (rho x) sigma.<br/>
+<code class="keyword">Implicit</code> Arguments Comp [m n p].<br/>
+<code class="keyword">Notation</code> "f (OO) g" := (Comp f g) (at level 50).<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="liftsub_Comp"></a>liftsub_Comp : forall m n p (rho : fin m -&gt; term n) (sigma : fin n -&gt; fin p), (Sfun sigma (OO) liftsub rho) =f liftsub (sigma (OO) rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold funceq.<br/>
+destruct x; simpl.<br/>
+&nbsp;unfold Comp.<br/>
+&nbsp;&nbsp;&nbsp;simpl.<br/>
+&nbsp;&nbsp;&nbsp;rewrite subvar_liftterm.<br/>
+&nbsp;&nbsp;&nbsp;rewrite liftterm_subvar.<br/>
+&nbsp;&nbsp;&nbsp;reflexivity.<br/>
+&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Comp_is_comp"></a>Comp_is_comp : forall m n p (rho : fin m -&gt; fin n) (sigma : fin n -&gt; fin p), sigma (OO) (fun x =&gt; rho x) = sigma (O) rho.<br/>
+<code class="keyword">Proof</code>.<br/>
+reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+</code>
+<hr/><a href="index.html">Index</a><hr/><font size="-1">This page has been generated by <a href="http://www.lri.fr/~filliatr/coqdoc/">coqdoc</a></font>
+</body>
+</html>

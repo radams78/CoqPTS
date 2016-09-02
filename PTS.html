@@ -1,0 +1,338 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset="><link rel="stylesheet" href="style.css" type="text/css"><title>PTS</title>
+</head>
+
+<body>
+
+<h1>Library PTS</h1>
+
+<code>
+<code class="keyword">Require</code> <code class="keyword">Export</code> <a href="Conv.html">Conv</a>.<br/>
+<code class="keyword">Require</code> <code class="keyword">Import</code> <a href="CR.html">CR</a>.<br/>
+
+<br/>
+<code class="keyword">Fixpoint</code> <a name="context"></a>context (n : nat) {struct n} : Set :=<br/>
+&nbsp;&nbsp;match n with<br/>
+&nbsp;&nbsp;| O =&gt; unit<br/>
+&nbsp;&nbsp;| (S m) =&gt; prod (context m) (term m)<br/>
+&nbsp;&nbsp;end.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="typeof"></a>typeof : forall n : nat, fin n -&gt; context n -&gt; term n.<br/>
+&nbsp;&nbsp;induction n.<br/>
+&nbsp;&nbsp;intro x.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;case x.<br/>
+&nbsp;&nbsp;intro x.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;case x.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intros y Gamma.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case Gamma. <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros Delta A.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exact (liftterm (IHn y Delta)).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intro Gamma.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case Gamma.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intros Delta A.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exact (liftterm A).<br/>
+<code class="keyword">Defined</code>.<br/>
+<code class="keyword">Implicit</code> Arguments typeof [n].<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="subctxt"></a>subctxt (m n : nat) (Delta : context m) (Gamma : context n) (rho : fin m -&gt; fin n) :=<br/>
+&nbsp;&nbsp;forall (x : fin m), typeof (rho x) Gamma = subvar (typeof x Delta) rho.<br/>
+<code class="keyword">Implicit</code> Arguments subctxt [m n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="subctxt_ext"></a>subctxt_ext : forall (m n : nat) (Delta : context m) (Gamma : context n) (rho sigma : fin m -&gt; fin n),<br/>
+&nbsp;&nbsp;rho =f sigma -&gt; subctxt Delta Gamma rho -&gt; subctxt Delta Gamma sigma.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold subctxt.<br/>
+intros.<br/>
+rewrite &lt;- H with x.<br/>
+transitivity (subvar (typeof x Delta) rho).<br/>
+&nbsp;apply H0.<br/>
+&nbsp;apply subvar_ext.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Triv_subctxt"></a>Triv_subctxt : forall (n : nat) (Gamma : context n), subctxt Gamma Gamma (id _).<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold subctxt.<br/>
+intros.<br/>
+symmetry.<br/>
+apply triv_subvar.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Weak_subctxtr"></a>Weak_subctxtr : forall (m n : nat) (Delta : context m) (Gamma : context n) (rho : fin m -&gt; fin n) (A : term n),<br/>
+&nbsp;&nbsp;subctxt Delta Gamma rho -&gt; subctxt (n:=S n) Delta (Gamma, A) (up (n:=n) (O) rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold subctxt.<br/>
+intros.<br/>
+simpl.<br/>
+rewrite H.<br/>
+apply liftterm_subvar with (rho:= rho).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Weak_subctxt"></a>Weak_subctxt : forall (m n : nat) (Delta : context m) (Gamma : context n) (rho : fin m -&gt; fin n) (A : term m),<br/>
+&nbsp;&nbsp;subctxt Delta Gamma rho -&gt; subctxt (m:=S m) (n:=S n) (Delta, A) (Gamma, subvar A rho) (Sfun rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold subctxt at 2.<br/>
+destruct x; simpl.<br/>
+&nbsp;fold fin in f.<br/>
+&nbsp;&nbsp;&nbsp;rewrite H with f.<br/>
+&nbsp;&nbsp;&nbsp;rewrite subvar_liftterm.<br/>
+&nbsp;&nbsp;&nbsp;apply liftterm_subvar with (rho:= rho).<br/>
+&nbsp;rewrite subvar_liftterm.<br/>
+&nbsp;&nbsp;&nbsp;apply liftterm_subvar with (rho:= rho).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Strength_subctxt"></a>Strength_subctxt : forall (m n : nat) (Delta : context m) (Gamma : context n) (rho : fin (S m) -&gt; fin n) (A : term m),<br/>
+&nbsp;&nbsp;subctxt (m:=S m) (Delta, A) Gamma rho -&gt; subctxt Delta Gamma (rho (O) up (n:=m)).<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold subctxt.<br/>
+intros.<br/>
+unfold comp at 1.<br/>
+rewrite H with (up x).<br/>
+simpl.<br/>
+apply subvar_liftterm with (rho:= rho).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="par_red1_ctxt"></a>par_red1_ctxt (n : nat) (Gamma Delta : context n) :=<br/>
+&nbsp;&nbsp;forall x, typeof x Gamma |&gt; typeof x Delta.<br/>
+<code class="keyword">Implicit</code> Arguments par_red1_ctxt [n].<br/>
+<code class="keyword">Notation</code> "Gamma |c&gt; Delta" := (par_red1_ctxt Gamma Delta) (at level 80).<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="par_red1_ctxt_ref"></a>par_red1_ctxt_ref : forall (n : nat) (Gamma : context n),<br/>
+&nbsp;&nbsp;Gamma |c&gt; Gamma.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold par_red1_ctxt.<br/>
+auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+<code class="keyword">Hint</code> Resolve par_red1_ctxt_ref.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="par_red1_ctxt_build"></a>par_red1_ctxt_build : forall n (Gamma Delta : context n) (A B : term n),<br/>
+&nbsp;&nbsp;Gamma |c&gt; Delta -&gt; A |&gt; B -&gt; ((Gamma, A) : context (S n)) |c&gt; (Delta, B).<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold par_red1_ctxt.<br/>
+destruct x; simpl; apply par_red1_liftterm; auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="par_red1_ctxt_injl"></a>par_red1_ctxt_injl : forall n (Gamma Delta : context n) (A B : term n),<br/>
+&nbsp;&nbsp;((Gamma, A) : context (S n)) |c&gt; (Delta, B) -&gt; Gamma |c&gt; Delta.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold par_red1_ctxt.<br/>
+intros.<br/>
+apply par_red1_liftterm_inj.<br/>
+apply H with (x:= up x).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="par_red1_ctxt_injr"></a>par_red1_ctxt_injr : forall n (Gamma Delta : context n) (A B : term n),<br/>
+&nbsp;&nbsp;((Gamma, A) : context (S n)) |c&gt; (Delta, B) -&gt; A |&gt; B.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold par_red1_ctxt.<br/>
+intros.<br/>
+apply par_red1_liftterm_inj.<br/>
+apply H with (x:= bot (n:=n)).<br/>
+<code class="keyword">Qed</code>.<br/>
+&nbsp;<br/>
+<code class="keyword">Definition</code> <a name="conv_ctxt"></a>conv_ctxt (n : nat) (Gamma Delta : context n) :=<br/>
+&nbsp;&nbsp;forall x, typeof x Gamma ~= typeof x Delta.<br/>
+<code class="keyword">Implicit</code> Arguments conv_ctxt [n].<br/>
+<code class="keyword">Notation</code> "Gamma ~=c Delta" := (conv_ctxt Gamma Delta) (at level 80).<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="conv_ctxt_ref"></a>conv_ctxt_ref : forall (n : nat) (Gamma : context n), Gamma ~=c Gamma.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold conv_ctxt.<br/>
+auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+<code class="keyword">Hint</code> Resolve conv_ctxt_ref.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="conv_ctxt_build"></a>conv_ctxt_build : forall n (Gamma Delta : context n) (A B : term n),<br/>
+&nbsp;Gamma ~=c Delta -&gt; A ~= B -&gt; ((Gamma, A) : context (S n)) ~=c (Delta, B).<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold conv_ctxt.<br/>
+destruct x; simpl; apply conv_liftterm; auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="conv_ctxt_injl"></a>conv_ctxt_injl : forall n (Gamma Delta : context n) (A B : term n),<br/>
+&nbsp;((Gamma, A) : context (S n)) ~=c (Delta, B) -&gt; Gamma ~=c Delta.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold conv_ctxt.<br/>
+intros.<br/>
+apply conv_liftterm_inj.<br/>
+apply H with (x:= up x).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="conv_ctxt_injr"></a>conv_ctxt_injr : forall n (Gamma Delta : context n) (A B : term n),<br/>
+&nbsp;((Gamma, A) : context (S n)) ~=c (Delta, B) -&gt; A ~= B.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold conv_ctxt.<br/>
+intros.<br/>
+apply conv_liftterm_inj.<br/>
+apply H with (x:= bot (n:=n)).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Parameter</code> <a name="axiom"></a>axiom : sort -&gt; sort -&gt; Prop.<br/>
+<code class="keyword">Parameter</code> <a name="rule"></a>rule : sort -&gt; sort -&gt; sort -&gt; Prop.<br/>
+
+<br/>
+<code class="keyword">Inductive</code> <a name="PTS"></a>PTS : forall n : nat, context n -&gt; term n -&gt; term n -&gt; Prop :=<br/>
+&nbsp;&nbsp;<a name="axioms"></a>axioms : forall s t : sort, axiom s t -&gt; PTS O tt (srt s) (srt t) |<br/>
+&nbsp;&nbsp;<a name="start"></a>start : forall n : nat, forall Gamma : context n, forall A : term n, forall s : sort,<br/>
+&nbsp;&nbsp;&nbsp;PTS _ Gamma A (srt s) -&gt; PTS (S n) (Gamma, A) bot (liftterm A) |<br/>
+&nbsp;&nbsp;<a name="weakening"></a>weakening : forall n : nat, forall Gamma : context n, forall A B C : term n, forall s : sort,<br/>
+&nbsp;&nbsp;&nbsp;PTS _ Gamma A B -&gt; PTS _ Gamma C (srt s) -&gt; PTS (S n) (Gamma, C) (liftterm A) (liftterm B) |<br/>
+&nbsp;&nbsp;<a name="product"></a>product : forall n : nat, forall Gamma : context n, forall A : term n, forall B : term (S n), forall s1 s2 s3 : sort,<br/>
+&nbsp;&nbsp;&nbsp;rule s1 s2 s3 -&gt;<br/>
+&nbsp;&nbsp;&nbsp;PTS _ Gamma A (srt s1) -&gt; PTS (S n) (Gamma, A) B (srt s2) -&gt; PTS _ Gamma (pi A B) (srt s3) |<br/>
+&nbsp;&nbsp;<a name="application"></a>application : forall n : nat, forall Gamma : context n, forall F A a : term n, forall B : term (S n),<br/>
+&nbsp;&nbsp;&nbsp;PTS _ Gamma F (pi A B) -&gt; PTS _ Gamma a A -&gt; PTS _ Gamma (app F a) (subbot B a) |<br/>
+&nbsp;&nbsp;<a name="abstraction"></a>abstraction : forall n : nat, forall Gamma : context n, forall A : term n, forall b B : term (S n), forall s1 s2 s3 : sort,<br/>
+&nbsp;&nbsp;&nbsp;rule s1 s2 s3 -&gt;<br/>
+&nbsp;&nbsp;&nbsp;PTS (S n) (Gamma, A) b B -&gt; PTS _ Gamma A (srt s1) -&gt; PTS (S n) (Gamma, A) B (srt s2) -&gt; PTS _ Gamma (lda A b) (pi A B) |<br/>
+&nbsp;&nbsp;<a name="conversion"></a>conversion : forall n : nat, forall Gamma : context n, forall A B B' : term n, forall s : sort,<br/>
+&nbsp;&nbsp;&nbsp;B ~= B' -&gt;<br/>
+&nbsp;&nbsp;&nbsp;PTS _ Gamma A B -&gt; PTS _ Gamma B' (srt s) -&gt; PTS _ Gamma A B'.<br/>
+<code class="keyword">Implicit</code> Arguments PTS [n].<br/>
+<code class="keyword">Notation</code> "Gamma |- M ; A" := (PTS Gamma M A) (at level 80).<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="valid"></a>valid : forall n : nat, context n -&gt; Prop.<br/>
+&nbsp;&nbsp;intro n.<br/>
+&nbsp;&nbsp;case n; simpl.<br/>
+&nbsp;&nbsp;intro.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact True.<br/>
+&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;exact (exists s : sort, PTS c t (srt s)).<br/>
+<code class="keyword">Defined</code>.<br/>
+<code class="keyword">Implicit</code> Arguments valid [n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Weak_valid"></a>Weak_valid : forall (n : nat) (Gamma : context n) (A B : term n) (s : sort),<br/>
+&nbsp;&nbsp;valid (n:= S n) (Gamma, B) -&gt; Gamma |- A ; srt s -&gt; valid (n:= S (S n)) (Gamma, A, liftterm B).<br/>
+<code class="keyword">Proof</code>.<br/>
+simpl.<br/>
+destruct 1.<br/>
+rename x into t.<br/>
+split with t.<br/>
+apply weakening with (B:= srt (n:=n) t) (s:=s); assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="Context_Validity"></a>Context_Validity : forall (n : nat) (Gamma : context n) (M A : term n),<br/>
+&nbsp;&nbsp;Gamma |- M ; A -&gt; valid Gamma.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction 1; auto.<br/>
+split.<br/>
+split with s.<br/>
+&nbsp;&nbsp;assumption.<br/>
+split with s.<br/>
+&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="Start_ax"></a>Start_ax : forall n (Gamma : context n) s t,<br/>
+&nbsp;&nbsp;axiom s t -&gt; valid Gamma -&gt; Gamma |- srt s ; srt t.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction n; simpl; destruct Gamma.<br/>
+&nbsp;intros.<br/>
+&nbsp;&nbsp;&nbsp;apply axioms.<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;rename c into Gamma.<br/>
+&nbsp;&nbsp;&nbsp;rename t into A.<br/>
+&nbsp;&nbsp;&nbsp;destruct 2.<br/>
+&nbsp;&nbsp;&nbsp;rename x into s'.<br/>
+&nbsp;&nbsp;&nbsp;apply weakening with (A:= srt (n:=n) s) (B:= srt (n:=n) t) (s:= s').<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply IHn.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Context_Validity with A (srt (n:=n) s').<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Theorem</code> <a name="Start_var"></a>Start_var : forall n (Gamma : context n) (x : fin n),<br/>
+&nbsp;&nbsp;valid Gamma -&gt; Gamma |- x ; typeof x Gamma.<br/>
+<code class="keyword">Proof</code>.<br/>
+induction n; simpl; destruct Gamma; destruct x; rename c into Gamma; rename t into A.<br/>
+&nbsp;rename f into x.<br/>
+&nbsp;&nbsp;&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;rename x0 into s.<br/>
+&nbsp;&nbsp;&nbsp;apply weakening with (A:= var x) (B:= typeof x Gamma) (s:= s).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply IHn.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;apply Context_Validity with A (srt (n:=n) s).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;destruct 1.<br/>
+&nbsp;&nbsp;&nbsp;rename x into s.<br/>
+&nbsp;&nbsp;&nbsp;apply start with (Gamma:= Gamma) (A:= A) (s:= s).<br/>
+&nbsp;&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="satisfy"></a>satisfy (m n : nat) (Gamma : context n) (sigma : fin m -&gt; term n) (Delta : context m) :=<br/>
+&nbsp;&nbsp;forall x, Gamma |- sigma x ; subst (typeof x Delta) sigma.<br/>
+<code class="keyword">Implicit</code> Arguments satisfy [n m].<br/>
+<code class="keyword">Notation</code> "Gamma |= sigma ; Delta" := (satisfy Gamma sigma Delta) (at level 80).<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Triv_satisfy"></a>Triv_satisfy : forall n : nat, forall Gamma : context n,<br/>
+&nbsp;&nbsp;valid Gamma -&gt; Gamma |= id _ ; Gamma.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold satisfy.<br/>
+intros.<br/>
+rewrite triv_subst.<br/>
+apply Start_var.<br/>
+assumption.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Weak_satisfyl"></a>Weak_satisfyl : forall n : nat, forall Delta : context n, forall m : nat, forall Gamma : context m, forall A : term m, forall sigma : (fin n -&gt; term m), forall s : sort,<br/>
+&nbsp;&nbsp;Gamma |= sigma ; Delta -&gt; Gamma |- A ; srt s -&gt;<br/>
+&nbsp;&nbsp;((Gamma, A) : context (S m)) |= (up (n:=m) (OO) sigma) ; Delta.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold satisfy.<br/>
+intros.<br/>
+rewrite &lt;- liftterm_subst.<br/>
+apply weakening with (A:= sigma x) (s:= s); auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Strength_satisfy"></a>Strength_satisfy : forall (m n : nat) (Gamma : context n) (Delta : context m) (sigma : fin (S m) -&gt; term n) (A : term m),<br/>
+&nbsp;&nbsp;Gamma |= sigma ; (Delta, A) -&gt; Gamma |= sigma (O) up (n:=m) ; Delta.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold satisfy.<br/>
+unfold comp at 1.<br/>
+intros.<br/>
+rewrite &lt;- subst_liftterm.<br/>
+apply H with (x:= up x).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="satisfy_botsub"></a>satisfy_botsub : forall n (Gamma : context n) M A,<br/>
+Gamma |- M ; A -&gt; Gamma |= botsub M ; (Gamma, A).<br/>
+<code class="keyword">Proof</code>.<br/>
+&nbsp;intros.<br/>
+&nbsp;unfold satisfy.<br/>
+&nbsp;destruct x; simpl; rewrite subst_liftterm_botsub.<br/>
+&nbsp;&nbsp;apply Start_var.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;apply Context_Validity with M A.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assumption.<br/>
+&nbsp;&nbsp;assumption.<br/>
+<code class="keyword">Qed</code>.</code>
+<hr/><a href="index.html">Index</a><hr/><font size="-1">This page has been generated by <a href="http://www.lri.fr/~filliatr/coqdoc/">coqdoc</a></font>
+</body>
+</html>

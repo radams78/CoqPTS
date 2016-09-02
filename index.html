@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=">
+  <link rel="stylesheet" href="style.css" type="text/css">
+  <title>Index</title>
+</head>
+<body>
+<h1>Pure Type Systems in Coq</h1>
+I am currently working on a formalization of the metatheory of Pure
+Type Systems (PTSs) in Coq, based on the representation of terms as a
+nested datatype [2, 5, 7].&nbsp; You can have a look at the source code
+and the documentation automatically produced by coqdoc here, as well as
+the current state of my own documentation, which is proceeding slowly.<br>
+<br>
+I began this work because I wanted a machine-checked version of my
+result on the equivalence of systems with and without equality
+judgements [1].&nbsp; I looked at two previous formalizations of the
+metatheory of type theories [4, 8]; neither was satisfactory for my
+purposes, so I set about building my own from scratch.&nbsp; I think
+the results are quite satisfactory.<br>
+<br>
+This formalisation follows the development in [3] faithfully,
+proceeding then to the proof of the Strengthening Lemma in [6].&nbsp; I
+have also formalized the results in Appendix B of [1], and have begun
+on the results in the main body of the paper.<br>
+<br>
+The documentation is
+now thoroughly out of date, and I am sure the file Strength.v could be
+simplified further, but I would like for the moment to press ahead and
+complete the formalization of the main result in [1].<br>
+<br>
+<a href="Finite.v">Finite.v</a> - Some preliminaries dealing with a
+family of finite types.<br>
+<a href="Terms.v">Terms.v</a> - The definition of the family of types
+of terms.<br>
+<a href="Subvar.v">Subvar.v</a> - The operation of replacing variables.<br>
+<a href="Subst.v">Subst.v</a> - The operation of substitution.<br>
+<a href="Conv.v">Conv.v</a> - Beta-reduction and beta-conversion.<br>
+<a href="CR.v">CR.v</a> - The Church-Rosser Theorem.<br>
+<a href="PTS.v">PTS.v</a> - The rules of deduction of a Pure Type
+System.<br>
+<a href="Meta.v">Meta.v</a> - The basic metatheory, including
+Weakening, Substitution and Generation Lemmas.<br>
+<a href="SR.v">SR.v</a> - The Subject Reduction Theorem.<br>
+<a href="UT.v">UT.v</a> - Uniqueness of types in a functional PTS<br>
+<br>
+<a href="String.v">String.v</a> - Results about strings of terms needed
+for:<br>
+<a href="Strength.v">Strength.v</a> - Van Bentham Jutting's proof of
+the Strengthening Lemma [6].<br>
+<br>
+<a href="PTSeq.v">PTSeq.v</a> - Basic metatheory of Pure Type Systems
+with judgemental equality.<br>
+<br>
+<a href="Labterms.v">Labterms.v</a> - The definition of the family of types of labelled terms used by TPOSR.<br>
+<a href="Labsubvar.v">Labsubvar.v</a> - The operation of replacing variables in labelled terms.<br>
+<a href="Labsubst.v">Labsubst.v</a> - The operation of substitution on labelled terms.<br>
+<a href="Labconv.v">Labconv.v</a> - Beta-reduction and beta-conversion on labelled terms.<br>
+<a href="Labctxt.v">Labctxt.v</a> - Labelled contexts.<br>
+<a href="TPOSR.v">TPOSR.v</a> - Typed Parallel One-Step Reduction.<br>
+<br>
+<a href="docu.dvi">Documentation</a> - Here is how much of the project
+I have managed to document so far.&nbsp; Quite out of date, I am afraid.<br>
+<h5>References</h5>
+[1]&nbsp;&nbsp; Robin Adams, 2005.&nbsp; <span
+ style="font-style: italic;">Pure Type Systems with Judgemental Equality</span>.&nbsp;
+To appear in J. Functional Programming.<br>
+[2]&nbsp;&nbsp; Thorsten Altenkirch and Bernhard Reus, 1999.&nbsp; <span
+ style="font-style: italic;">Monadic Presentations of Lambda Terms
+using Generalized Inductive Types</span>.&nbsp; CSL '99, LNCS 1683,
+453-468.&nbsp; Springer-Verlag.<br>
+[3]&nbsp;&nbsp; Hank Barendregt, 1992.&nbsp; <span
+ style="font-style: italic;">Lambda Calculi with Types</span>.&nbsp; In
+Abramsky, Gabbat and Maibaum (eds.) <span style="font-style: italic;">Handbook
+of Logic in Computer Science</span>, Vol. II.&nbsp; Oxford University
+Press.<br>
+[4]&nbsp;&nbsp; Bruno Barras, 1999.&nbsp; <span
+ style="font-style: italic;">Auto-validation d'un syst&egrave;me de
+preuves avec familles inductives</span>.&nbsp; PhD thesis,
+Universit&eacute; Paris 7.<br>
+[5]&nbsp;&nbsp; Francoise Bellegarde and James Hook, 1994.&nbsp; <span
+ style="font-style: italic;">Substitution: A formal methods case study
+using monads and transformations</span>.&nbsp; Science of Computer
+Programming 23 (2-3), 287-311.<br>
+[6]&nbsp;&nbsp; L. S. van Bentham Jutting, 1993.&nbsp; <span
+ style="font-style: italic;">Typing in Pure Type Systems</span>.&nbsp;
+Information and Computation 105 (1), 35-41.<br>
+[7]&nbsp;&nbsp; Richard S. Bird and Ross Patterson, 1999.&nbsp; <span
+ style="font-style: italic;">De Bruijn Notation as a Nested Datatype</span>.&nbsp;
+J. Functional Programming 9 (1), 77-91.<br>
+[8]&nbsp;&nbsp; James McKinna and Robert Pollack, 1999.&nbsp; <span
+ style="font-style: italic;">Some Lambda Calculus and Type Theory
+Formalized</span>.&nbsp; Journal of Automated Reasoning 23 (3-4),
+373-409.<br>
+
+<p>Here is the documentation produced by coqdoc: <a href="doc/index.html">coqdoc documentation</a>.</p>
+
+<p><font size="-1">Last updated 28/4/06.</font></p>
+</body>
+</html>
+
+

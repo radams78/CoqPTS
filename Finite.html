@@ -1,0 +1,141 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset="><link rel="stylesheet" href="style.css" type="text/css"><title>Finite</title>
+</head>
+
+<body>
+
+<h1>Library Finite</h1>
+
+<code>
+<code class="keyword">Definition</code> <a name="funceq"></a>funceq (X Y : Set) (f g : X -&gt; Y) := forall x : X, f x = g x.<br/>
+<code class="keyword">Implicit</code> Arguments funceq [X Y].<br/>
+<code class="keyword">Notation</code> "f =f g" := (funceq f g) (at level 80).<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="funceq_ref"></a>funceq_ref : forall (X Y : Set) (f : X -&gt; Y), f =f f.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold funceq.<br/>
+reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="funceq_sym"></a>funceq_sym : forall (X Y : Set) (f g : X -&gt; Y), f =f g -&gt; g =f f.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold funceq.<br/>
+auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="funceq_trans"></a>funceq_trans : forall (X Y : Set) (f g h : X -&gt; Y), f =f g -&gt; g =f h -&gt; f =f h.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold funceq.<br/>
+intros.<br/>
+transitivity (g x); auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="id"></a>id (X : Set) := fun x : X =&gt; x.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="comp"></a>comp (X Y Z : Set) (g : Y -&gt; Z) (f : X -&gt; Y) := fun x =&gt; g (f x).<br/>
+<code class="keyword">Implicit</code> Arguments comp [X Y Z].<br/>
+<code class="keyword">Notation</code> "f (O) g" := (comp f g) (at level 50).<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="injective"></a>injective (X Y : Set) (f : X -&gt; Y) := forall x y, f x = f y -&gt; x = y.<br/>
+<code class="keyword">Implicit</code> Arguments injective [X Y].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Some_inj"></a>Some_inj : forall (X : Set) (x y : X), Some x = Some y -&gt; x = y.<br/>
+<code class="keyword">Proof</code>.<br/>
+injection 1.<br/>
+auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="option_disc"></a>option_disc : forall (X : Set) (x : X), (Some x = None) -&gt; False.<br/>
+<code class="keyword">Proof</code>.<br/>
+discriminate 1. <br/>
+<code class="keyword">Qed</code>. <br/>
+
+<br/>
+<code class="keyword">Fixpoint</code> <a name="fin"></a>fin (n : nat) {struct n} : Set :=<br/>
+&nbsp;&nbsp;match n with<br/>
+&nbsp;&nbsp;| O =&gt; Empty_set<br/>
+&nbsp;&nbsp;| S m =&gt; option (fin m)<br/>
+&nbsp;&nbsp;end.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="bot"></a>bot n : fin (S n) := None.<br/>
+<code class="keyword">Implicit</code> Arguments bot [n].<br/>
+<code class="keyword">Definition</code> <a name="up"></a>up n x : fin (S n) := Some x.<br/>
+<code class="keyword">Implicit</code> Arguments up [n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="up_wd"></a>up_wd : forall n (x y : fin n), x = y -&gt; up x = up y.<br/>
+<code class="keyword">Proof</code>.<br/>
+intro n.<br/>
+apply f_equal.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="up_inj"></a>up_inj : forall n (x y : fin n), up x = up y -&gt; x = y.<br/>
+<code class="keyword">Proof</code>.<br/>
+intro n.<br/>
+apply Some_inj with (X:= fin n).<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Definition</code> <a name="Sfun"></a>Sfun m n (f : fin m -&gt; fin n) := fun x : fin (S m) =&gt;<br/>
+&nbsp;&nbsp;match x with<br/>
+&nbsp;&nbsp;| None =&gt; bot<br/>
+&nbsp;&nbsp;| Some y =&gt; up (f y)<br/>
+&nbsp;&nbsp;end.<br/>
+<code class="keyword">Implicit</code> Arguments Sfun [m n].<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Sfun_ext"></a>Sfun_ext : forall m n (rho sigma : fin m -&gt; fin n), rho =f sigma -&gt; Sfun rho =f Sfun sigma.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold funceq.<br/>
+destruct x; simpl.<br/>
+&nbsp;apply up_wd with (n:=n).<br/>
+&nbsp;&nbsp;&nbsp;apply H.<br/>
+&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Sfun_inj"></a>Sfun_inj : forall m n (rho : fin m -&gt; fin n), injective rho -&gt; injective (Sfun rho).<br/>
+<code class="keyword">Proof</code>.<br/>
+intros m n rho rho_inj x.<br/>
+case x; clear x; fold fin.<br/>
+&nbsp;intros x y.<br/>
+&nbsp;&nbsp;&nbsp;case y; clear y; fold fin; simpl.<br/>
+&nbsp;&nbsp;intro y.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;injection 1.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intro rho_x_is_rho_y.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rewrite rho_inj with x y; auto.<br/>
+&nbsp;&nbsp;discriminate 1.<br/>
+&nbsp;intro y.<br/>
+&nbsp;&nbsp;&nbsp;case y; clear y; fold fin; simpl.<br/>
+&nbsp;&nbsp;discriminate 1.<br/>
+&nbsp;&nbsp;reflexivity.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Sfun_id"></a>Sfun_id : forall n, Sfun (id (fin n)) =f id _.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold funceq.<br/>
+destruct x; auto.<br/>
+<code class="keyword">Qed</code>.<br/>
+
+<br/>
+<code class="keyword">Lemma</code> <a name="Sfun_comp"></a>Sfun_comp : forall m n p (rho : fin m -&gt; fin n) (sigma : fin n -&gt; fin p),<br/>
+&nbsp;Sfun (sigma (O) rho) =f Sfun sigma (O) Sfun rho.<br/>
+<code class="keyword">Proof</code>.<br/>
+unfold funceq.<br/>
+destruct x; reflexivity.<br/>
+<code class="keyword">Qed</code>.</code>
+<hr/><a href="index.html">Index</a><hr/><font size="-1">This page has been generated by <a href="http://www.lri.fr/~filliatr/coqdoc/">coqdoc</a></font>
+</body>
+</html>
